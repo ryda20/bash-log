@@ -21,9 +21,9 @@ random_color=${colors[$colors_index]}  # default color is black
 
 __LOG_DEBUG=0
 
-debug() {
-	# show log only when have debug.txt file or __LOG_DEBUG env is greater than 0
-	if [ -f "debug.txt" -o $__LOG_DEBUG -gt 0 ]; then
+log_debug() {
+	# show log only when have log_debug.txt file or __LOG_DEBUG env is greater than 0
+	if [ -f "log_debug.txt" -o $__LOG_DEBUG -gt 0 ]; then
 		log "${1}"
 	fi
 }
@@ -41,11 +41,11 @@ log() {
 	local str prefix suffix line_width padding_str
 	while [[ $# -gt 0 ]]; do
 		case $1 in 
-		--suffix) shift; suffix="$1"; debug "got suffix: $1";;
-		--prefix) shift; prefix="$1"; debug "got prefix: $1";;
-		--line_width) shift; line_width="$1"; debug "got line_width: $1";;
-		--padding_str) shift; padding_str="$1"; debug "got padding_str: $1";;
-		*) str="$1"; debug "got str: $1";;
+		--suffix) shift; suffix="$1"; log_debug "got suffix: $1";;
+		--prefix) shift; prefix="$1"; log_debug "got prefix: $1";;
+		--line_width) shift; line_width="$1"; log_debug "got line_width: $1";;
+		--padding_str) shift; padding_str="$1"; log_debug "got padding_str: $1";;
+		*) str="$1"; log_debug "got str: $1";;
 		esac
 		shift
 	done
@@ -58,7 +58,7 @@ log() {
 
 	local padding=$(( line_width - ${#str} - ${#prefix} - ${#suffix} ))
 
-	debug "prefix: $prefix, suffix: $suffix, line_width: $line_width, padding: $padding"
+	log_debug "prefix: $prefix, suffix: $suffix, line_width: $line_width, padding: $padding"
 	
 	_repeat --count $padding --prefix "${random_color}${prefix}${str}" --suffix "${suffix}${NC}" "$padding_str"
 }
@@ -72,11 +72,11 @@ log_header() {
 	local str line_width prefix suffix padding_str
 	while [[ $# -gt 0 ]]; do
 		case $1 in 
-		--suffix) shift; suffix="$1"; debug "got suffix: $1";;
-		--prefix) shift; prefix="$1"; debug "got prefix: $1";;
-		--line_width) shift; line_width="$1"; debug "got line_width: $1";;
-		--padding_str) shift; padding_str="$1"; debug "got padding_str: $1";;
-		*) str="$1"; debug "got str: $1";;
+		--suffix) shift; suffix="$1"; log_debug "got suffix: $1";;
+		--prefix) shift; prefix="$1"; log_debug "got prefix: $1";;
+		--line_width) shift; line_width="$1"; log_debug "got line_width: $1";;
+		--padding_str) shift; padding_str="$1"; log_debug "got padding_str: $1";;
+		*) str="$1"; log_debug "got str: $1";;
 		esac
 		shift
 	done
@@ -88,11 +88,11 @@ log_header() {
 	str=` _replace_tab_by_spaces "${str}" `
 	
 	_random_color_gen
-	debug "random color to "
+	log_debug "random color to "
 	str="${prefix} ${str} ${prefix}" # append 2 prefix to str
 	local padding=$(( line_width - ${#str} - ${#suffix} ))
 	
-	debug "prefix: $prefix, suffix: $suffix, line_width: $line_width, padding: $padding"
+	log_debug "prefix: $prefix, suffix: $suffix, line_width: $line_width, padding: $padding"
 
 	_repeat --count ${padding} --prefix "${random_color}${str}" --suffix "${suffix}${NC}" "${padding_str}"
 }
@@ -105,13 +105,13 @@ log_title() {
 	local title str line_width prefix suffix padding_str ifs
 	while [[ $# -gt 0 ]]; do
 		case $1 in 
-		--title) shift; title="$1"; debug "got title: $1";;
-		--suffix) shift; suffix="$1"; debug "got suffix: $1";;
-		--prefix) shift; prefix="$1"; debug "got prefix: $1";;
-		--line_width) shift; line_width="$1"; debug "got line_width: $1";;
-		--padding_str) shift; padding_str="$1"; debug "got padding_str: $1";;
-		--ifs) shift; ifs="$1"; debug "got ifs: $1";;
-		*) str="$1"; debug "got str: $1";;
+		--title) shift; title="$1"; log_debug "got title: $1";;
+		--suffix) shift; suffix="$1"; log_debug "got suffix: $1";;
+		--prefix) shift; prefix="$1"; log_debug "got prefix: $1";;
+		--line_width) shift; line_width="$1"; log_debug "got line_width: $1";;
+		--padding_str) shift; padding_str="$1"; log_debug "got padding_str: $1";;
+		--ifs) shift; ifs="$1"; log_debug "got ifs: $1";;
+		*) str="$1"; log_debug "got str: $1";;
 		esac
 		shift
 	done
@@ -138,7 +138,7 @@ log_title() {
 		line="$( _replace_tab_by_spaces "${line}" )"
 		padding=$(( line_width - ${#line} - ${#prefix} - ${#suffix} ))
 		
-		# debug "line len: ${#line}, padding: ${padding}"
+		# log_debug "line len: ${#line}, padding: ${padding}"
 		
 		[[ $padding -lt 1 ]] && padding=0
 		_repeat --count ${padding} --prefix "${prefix}${line}" --suffix "${suffix}" "${padding_str}"
@@ -152,10 +152,10 @@ log_end() {
 	local line_width prefix suffix padding_str
 	while [[ $# -gt 0 ]]; do
 		case $1 in 
-		--suffix) shift; suffix="$1"; debug "got suffix: $1";;
-		--prefix) shift; prefix="$1"; debug "got prefix: $1";;
-		--line_width) shift; line_width="$1"; debug "got line_width: $1";;
-		--padding_str) shift; padding_str="$1"; debug "got padding_str: $1";;
+		--suffix) shift; suffix="$1"; log_debug "got suffix: $1";;
+		--prefix) shift; prefix="$1"; log_debug "got prefix: $1";;
+		--line_width) shift; line_width="$1"; log_debug "got line_width: $1";;
+		--padding_str) shift; padding_str="$1"; log_debug "got padding_str: $1";;
 		esac
 		shift
 	done
@@ -223,10 +223,10 @@ _repeat() {
 	local str count prefix suffix
 	while [[ $# -gt 0 ]]; do
 		case $1 in 
-		--suffix) shift; suffix="$1"; debug "got suffix: $1";;
-		--prefix) shift; prefix="$1"; debug "got prefix: $1";;
-		--count) shift; count="$1"; debug "got count: $1";;
-		*) str="$1"; debug "got str: $1";;
+		--suffix) shift; suffix="$1"; log_debug "got suffix: $1";;
+		--prefix) shift; prefix="$1"; log_debug "got prefix: $1";;
+		--count) shift; count="$1"; log_debug "got count: $1";;
+		*) str="$1"; log_debug "got str: $1";;
 		esac
 		shift
 	done
