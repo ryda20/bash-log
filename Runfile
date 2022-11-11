@@ -1,0 +1,81 @@
+#!/bin/bash
+source "${RF_REPOS_DIR:-~/.Runfile}/Runfile.template" # MUST_START_OF_FILE
+##regison USER ===================================================
+
+#import log.sh to test functions
+source log.sh
+
+# parse input value to get optional and default input value
+# below: option: suffix, prefix, line_width and main value is str
+targs() {
+	while [[ $# -gt 0 ]]; do
+		case $1 in 
+		--suffix) shift; suffix=$1; echo "got suffix: $1";;
+		--prefix) shift; prefix=$1; echo "got prefix: $1";;
+		--line_width) shift; line_width=$1; echo "got line_width: $1";;
+		*) str="$1"; echo "got str: $1";;
+		esac
+		shift
+	done
+	#
+	echo -e "got: suffix: $suffix, prefix: $prefix, line_width: $line_width, str: \"$str\""
+}
+
+tlog() {
+	log "log with default"
+	log_end
+	log "log with prefix=** " --prefix "** "
+	log_end
+	log "log with suffix=-- " --suffix "-- "
+	log_end
+	log "log with line_width=100, suffix=#" --line_width 100 --suffix "#"
+	log_end
+	log "log with line_width=100, suffix=#, padding_str=_ " --line_width 100 --suffix "#" --padding_str "_"
+}
+tlogheader() {
+	log_header "log_header with default"
+	log_end
+	log_header "log_header with prefix=** " --prefix "** "
+	log_end
+	log_header "log_header with suffix=-- " --suffix "-- "
+	log_end
+	log_header "log_header with line_width=100, suffix=#" --line_width 100 --suffix "#"
+	log_end
+	log_header "log_header with line_width=100, suffix=#, padding_str=_ " --line_width 100 --suffix "#" --padding_str "_"
+}
+tlogtitle() {
+	log_title "log_title with default" --title "i am a title"
+	log_empty
+	log_title "log_title with prefix=** " --prefix "** " --title "i am a title"
+	log_empty
+	log_title "log_title with suffix=-- " --suffix "-- " --title "i am a title"
+	log_empty
+	log_title "log_title with line_width=100, suffix=#" --line_width 100 --suffix "#" --title "i am a title"
+	log_empty
+	log_title "log_title with line_width=100, suffix=#, padding_str=_ " --line_width 100 --suffix "#" --padding_str "_" --title "i am a title"
+}
+
+tlogstep() {
+	log_step "Processing steps"
+	log_step "Step 1: downloading..."
+	for i in $( seq 1 5 );do
+		log "downloading package $i..."
+		sleep 1
+	done
+	log_step_result "downloaded all package"
+	log_step "Step 2: compiling..."
+	for i in $( seq 1 5 );do
+		log "compiling package $i..."
+		sleep 1
+	done
+	log_step_result "compiled all package"
+	log_step "Step 3: installing..."
+	for i in $( seq 1 5 );do
+		log "installing package $i..."
+		sleep 1
+	done
+	log_step_result "installed all package"
+}
+
+##endregion USER =================================================
+__start_app "$@" # MUST_END_OF_FILE
