@@ -1,7 +1,7 @@
 #!/bin/bash
 source "${RF_REPOS_DIR:-~/.Runfile}/Runfile.template" # MUST_START_OF_FILE
 ##regison USER ===================================================
-
+RF_FN_SKIP_PREFIX=""
 #import log.sh to test functions
 source log.sh
 
