@@ -38,6 +38,9 @@ tlog() {
 	log --title "i am a title" "i am a content of title log, calling from log fn"
 	log -e
 	log -t "i am a title by -t" "i am a content of title log, calling from log fn"
+	log --header --warning "this is warning"
+	log --header --error "this is error"
+	log --header --success "this is ok"
 	
 }
 tlogheader() {

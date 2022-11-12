@@ -5,7 +5,7 @@ __BLOG_NC=$'\001'"$(tput sgr0)"$'\002'
 
 __BLOG_COLORS[0]=$'\001'"$(tput setaf 0)"$'\002'
 __BLOG_COLORS[1]=$'\001'"$(tput setaf 2)"$'\002'
-__BLOG_COLORS[2]=$'\001'"$(tput setaf 3)"$'\002'
+__BLOG_COLORS[2]=$'\001'"$(tput setaf 3)"$'\002' # yellow
 __BLOG_COLORS[3]=$'\001'"$(tput setaf 190)"$'\002'
 __BLOG_COLORS[4]=$'\001'"$(tput setaf 153)"$'\002'
 __BLOG_COLORS[5]=$'\001'"$(tput setaf 4)"$'\002'
@@ -20,6 +20,12 @@ __BLOG_COLORS_INDEX_PRE=0
 __BLOG_COLORS_RANDOM=${__BLOG_COLORS[$__BLOG_COLORS_INDEX]}  # default color is black
 
 __BLOG_DEBUG=0
+
+__BLOG_ERROR=$'\001'"$(tput setaf 1)"$'\002' # red
+__BLOG_OK=$'\001'"$(tput setaf 2)"$'\002' # green
+__BLOG_WARNING=$'\001'"$(tput setaf 3)"$'\002' # yellow
+
+
 
 log_debug() {
 	# show log only when have log_debug.txt file or __BLOG_DEBUG env is greater than 0
@@ -40,6 +46,9 @@ log_debug() {
 #		<switch> --title | -t: allow to call log_title from log function
 #		<switch> --empty | -e: allow to call log_empty from log function
 #		<switch> --end | -ed: allow to call log_end_from log function
+#		<switch> --error: show as error message
+#		<switch> --warning: show as warning message
+#		<switch> --success: show as sucess message
 log() {
 	local args=("$@")
 	local str prefix suffix line_width padding_str
@@ -104,9 +113,13 @@ log() {
 # log_header "log text here" [--prefix x --suffix y --line_width numb]
 log_header() {
 	local str line_width prefix suffix padding_str
+	local warning=0 error=0 sucess=0
 	while [[ $# -gt 0 ]]; do
 		case $1 in 
-		--header|-hr) shift; log_debug "got passing from log, so, skip this one";;
+		--warning)  warning=1;;
+		--error)  error=1;;
+		--sucess) sucess=1;;
+		--header|-hr) log_debug "got passing from log, so, skip this one";;
 		--suffix|-sf) shift; suffix="$1"; log_debug "got suffix: $1";;
 		--prefix|-pf) shift; prefix="$1"; log_debug "got prefix: $1";;
 		--line_width|-lw) shift; line_width="$1"; log_debug "got line_width: $1";;
@@ -122,7 +135,17 @@ log_header() {
 	padding_str="${padding_str:-"="}"
 	str=` __blog_replace_tab_by_space "${str}" `
 	
-	__blog_random_color_gen
+	# check warning, error, ok switch and default to color
+	if [[ ${warning} -gt 0 ]]; then
+		__BLOG_COLORS_RANDOM=$__BLOG_WARNING
+	elif [[ ${error} -gt 0 ]]; then	
+		__BLOG_COLORS_RANDOM=$__BLOG_ERROR
+	elif [[ ${sucess} -gt 0 ]]; then
+		__BLOG_COLORS_RANDOM=$__BLOG_OK
+	else
+		__blog_random_color_gen
+	fi
+
 	log_debug "random color to "
 	str="${prefix} ${str} ${prefix}" # append 2 prefix to str
 	local padding=$(( line_width - ${#str} - ${#suffix} ))
