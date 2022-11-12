@@ -1,35 +1,31 @@
 #!/bin/bash
 
 ## Variables ##
-NC=$'\001'"$(tput sgr0)"$'\002'
+__BLOG_NC=$'\001'"$(tput sgr0)"$'\002'
 
-colors[0]=$'\001'"$(tput setaf 0)"$'\002'
-colors[1]=$'\001'"$(tput setaf 2)"$'\002'
-colors[2]=$'\001'"$(tput setaf 3)"$'\002'
-colors[3]=$'\001'"$(tput setaf 190)"$'\002'
-colors[4]=$'\001'"$(tput setaf 153)"$'\002'
-colors[5]=$'\001'"$(tput setaf 4)"$'\002'
-colors[6]=$'\001'"$(tput setaf 5)"$'\002'
-colors[7]=$'\001'"$(tput setaf 6)"$'\002'
-# colors[8]=$'\001'"$(tput setaf 1)"$'\002'
-# colors[9]=$'\001'"$(tput setaf 7)"$'\002'
+__BLOG_COLORS[0]=$'\001'"$(tput setaf 0)"$'\002'
+__BLOG_COLORS[1]=$'\001'"$(tput setaf 2)"$'\002'
+__BLOG_COLORS[2]=$'\001'"$(tput setaf 3)"$'\002'
+__BLOG_COLORS[3]=$'\001'"$(tput setaf 190)"$'\002'
+__BLOG_COLORS[4]=$'\001'"$(tput setaf 153)"$'\002'
+__BLOG_COLORS[5]=$'\001'"$(tput setaf 4)"$'\002'
+__BLOG_COLORS[6]=$'\001'"$(tput setaf 5)"$'\002'
+__BLOG_COLORS[7]=$'\001'"$(tput setaf 6)"$'\002'
+# __BLOG_COLORS[8]=$'\001'"$(tput setaf 1)"$'\002'
+# __BLOG_COLORS[9]=$'\001'"$(tput setaf 7)"$'\002'
 
-colors_size=${#colors[@]}
-colors_index=0
-colors_index_pre=0
-random_color=${colors[$colors_index]}  # default color is black
+__BLOG_COLORS_SIZE=${#__BLOG_COLORS[@]}
+__BLOG_COLORS_INDEX=0
+__BLOG_COLORS_INDEX_PRE=0
+__BLOG_COLORS_RANDOM=${__BLOG_COLORS[$__BLOG_COLORS_INDEX]}  # default color is black
 
-__LOG_DEBUG=0
+__BLOG_DEBUG=0
 
 log_debug() {
-	# show log only when have log_debug.txt file or __LOG_DEBUG env is greater than 0
-	if [ -f "log_debug.txt" -o $__LOG_DEBUG -gt 0 ]; then
+	# show log only when have log_debug.txt file or __BLOG_DEBUG env is greater than 0
+	if [ -f "log_debug.txt" -o $__BLOG_DEBUG -gt 0 ]; then
 		log "${1}"
 	fi
-}
-
-_replace_tab_by_spaces() {
-	echo -e "${1}" | sed 's/\t/    /g'
 }
 
 # log print out log
@@ -55,25 +51,25 @@ log() {
 		esac
 		shift
 	done
-	# check and set default values
-	prefix=${prefix:-"# "}
-	suffix=${suffix:-""}
-	line_width=${line_width:-${RF_LINE_WIDTH:-90}}
-	padding_str="${padding_str:-" "}"
-	header=${header:-0}
-	str=` _replace_tab_by_spaces "${str}" `
-
 	# check if input set --title
 	[[ $title -gt 0 ]] && [[ -n "$title_str" ]] && log_title "${args[@]}" && return
 
 	# check if input set --header
 	[[ $header -gt 0 ]] && log_header "${args[@]}" && return
 
+	# check and set default values
+	prefix=${prefix:-"# "}
+	suffix=${suffix:-""}
+	line_width=${line_width:-${RF_LINE_WIDTH:-90}}
+	padding_str="${padding_str:-" "}"
+	header=${header:-0}
+	str=` __blog_replace_tab_by_space "${str}" `
+
 	local padding=$(( line_width - ${#str} - ${#prefix} - ${#suffix} ))
 
 	log_debug "prefix: $prefix, suffix: $suffix, line_width: $line_width, padding: $padding"
 	
-	_repeat --count $padding --prefix "${random_color}${prefix}${str}" --suffix "${suffix}${NC}" "$padding_str"
+	__blog_repeat --count $padding --prefix "${__BLOG_COLORS_RANDOM}${prefix}${str}" --suffix "${suffix}${__BLOG_NC}" "$padding_str"
 }
 
 # log_header log text as header
@@ -99,16 +95,16 @@ log_header() {
 	suffix="${suffix:-"#"}"
 	line_width=${line_width:-${RF_LINE_WIDTH:-90}}
 	padding_str="${padding_str:-"="}"
-	str=` _replace_tab_by_spaces "${str}" `
+	str=` __blog_replace_tab_by_space "${str}" `
 	
-	_random_color_gen
+	__blog_random_color_gen
 	log_debug "random color to "
 	str="${prefix} ${str} ${prefix}" # append 2 prefix to str
 	local padding=$(( line_width - ${#str} - ${#suffix} ))
 	
 	log_debug "prefix: $prefix, suffix: $suffix, line_width: $line_width, padding: $padding"
 
-	_repeat --count ${padding} --prefix "${random_color}${str}" --suffix "${suffix}${NC}" "${padding_str}"
+	__blog_repeat --count ${padding} --prefix "${__BLOG_COLORS_RANDOM}${str}" --suffix "${suffix}${__BLOG_NC}" "${padding_str}"
 }
 
 # log_title create a log have title and content
@@ -135,7 +131,7 @@ log_title() {
 	line_width=${line_width:-${RF_LINE_WIDTH:-90}}
 	padding_str="${padding_str:-" "}"
 	title="${title:-""}"
-	str=` _replace_tab_by_spaces "${str}" `
+	str=` __blog_replace_tab_by_space "${str}" `
 	
 	ifs=${ifs:-$'\n'}
 
@@ -149,13 +145,13 @@ log_title() {
 	
 	local saveIFS="$IFS" && IFS=$ifs
 	for line in ${str}; do
-		line="$( _replace_tab_by_spaces "${line}" )"
+		line="$( __blog_replace_tab_by_space "${line}" )"
 		padding=$(( line_width - ${#line} - ${#prefix} - ${#suffix} ))
 		
 		# log_debug "line len: ${#line}, padding: ${padding}"
 		
 		[[ $padding -lt 1 ]] && padding=0
-		_repeat --count ${padding} --prefix "${prefix}${line}" --suffix "${suffix}" "${padding_str}"
+		__blog_repeat --count ${padding} --prefix "${prefix}${line}" --suffix "${suffix}" "${padding_str}"
 	done
 	log_end --line_width ${line_width}
 	IFS="$saveIFS"
@@ -178,7 +174,7 @@ log_end() {
 	suffix="${suffix:-"#"}"
 	padding_str="${padding_str:-"="}"
 	local padding=$(( line_width - ${#prefix} - ${#suffix} )) # -2 because i want to keep line_width but i was added 2 #
-	_repeat --count ${padding} --prefix "${prefix}" --suffix "${suffix}" "${padding_str}"
+	__blog_repeat --count ${padding} --prefix "${prefix}" --suffix "${suffix}" "${padding_str}"
 	# echo # make new line
 }
 
@@ -187,20 +183,20 @@ log_empty(){
 }
 
 
-__RF_STEP_SEP=$'\n'
-__RF_STEP_MESSAGE=""
-__RF_STEP_X=0
-__RF_STEP_Y=0
+__BLOG_STEP_SEP=$'\n'
+__BLOG_STEP_MESSAGE=""
+__BLOG_STEP_X=0
+__BLOG_STEP_Y=0
 
 # log_step create a log with keeping the step in the top of console for easy following
 log_step() {
 
 	clear
-	__RF_STEP_MESSAGE="${__RF_STEP_MESSAGE}${__RF_STEP_SEP}${@}\n"
-	tput cup ${__RF_STEP_X} ${__RF_STEP_Y} 
+	__BLOG_STEP_MESSAGE="${__BLOG_STEP_MESSAGE}${__BLOG_STEP_SEP}${@}\n"
+	tput cup ${__BLOG_STEP_X} ${__BLOG_STEP_Y} 
 	local saveIFS=$IFS
-	IFS=${__RF_STEP_SEP}
-	for msg in ${__RF_STEP_MESSAGE}; do
+	IFS=${__BLOG_STEP_SEP}
+	for msg in ${__BLOG_STEP_MESSAGE}; do
 		[[ -z "${#msg}" ]] && continue
 		if [[ "${msg:0:7}" == "result:" ]]; then
 			log "${msg}" --suffix "#"
@@ -211,8 +207,8 @@ log_step() {
 	done
 	IFS=$saveIFS
 	
-	# __RF_STEP_Y=$((__RF_STEP_Y + 1))
-	# __RF_STEP_Y=$((__RF_STEP_Y + 1))
+	# __BLOG_STEP_Y=$((__BLOG_STEP_Y + 1))
+	# __BLOG_STEP_Y=$((__BLOG_STEP_Y + 1))
 }
 
 # log_step_title() {
@@ -224,16 +220,20 @@ log_step_result(){
 }
 
 log_step_reset() {
-	__RF_STEP_MESSAGE=""
-	__RF_STEP_X=0
-	__RF_STEP_Y=0
+	__BLOG_STEP_MESSAGE=""
+	__BLOG_STEP_X=0
+	__BLOG_STEP_Y=0
+}
+
+__blog_replace_tab_by_space() {
+	echo -e "${1}" | sed 's/\t/    /g'
 }
 
 # Repeat given char N times using shell function
-# _repeat "repeat str" [--prefix x --suffix y --count numb]
+# __blog_repeat "repeat str" [--prefix x --suffix y --count numb]
 # or
-# _repeat [--prefix x --suffix y --count numb] "repeat str"
-_repeat() {
+# __blog_repeat [--prefix x --suffix y --count numb] "repeat str"
+__blog_repeat() {
 	local str count prefix suffix
 	while [[ $# -gt 0 ]]; do
 		case $1 in 
@@ -250,23 +250,23 @@ _repeat() {
 	suffix="${suffix:-}"
 
 	# add prefix on start
-	echo -en "${random_color}${prefix}"
+	echo -en "${__BLOG_COLORS_RANDOM}${prefix}"
 	if [[ $count -gt 0 ]]; then
 		# range start at 1
 		local range=$( seq 1 ${count} )
 		for i in $range; do echo -n "${str}"; done
 	fi
-	echo -e "${suffix}${NC}"
+	echo -e "${suffix}${__BLOG_NC}"
 }
 
-_random_color_gen() {
+__blog_random_color_gen() {
 	# generate random color, RANDOM is a bash shell value
-	colors_index=$(( RANDOM % colors_size ))
-	if [[ ${colors_index} -eq ${colors_index_pre} ]]; then
-		colors_index=$(( RANDOM % colors_size ))
+	__BLOG_COLORS_INDEX=$(( RANDOM % __BLOG_COLORS_SIZE ))
+	if [[ ${__BLOG_COLORS_INDEX} -eq ${__BLOG_COLORS_INDEX_PRE} ]]; then
+		__BLOG_COLORS_INDEX=$(( RANDOM % __BLOG_COLORS_SIZE ))
 	fi
-	colors_index_pre=${colors_index}
-	random_color=${colors[$colors_index]}
+	__BLOG_COLORS_INDEX_PRE=${__BLOG_COLORS_INDEX}
+	__BLOG_COLORS_RANDOM=${__BLOG_COLORS[$__BLOG_COLORS_INDEX]}
 }
 
 # starting
