@@ -30,16 +30,16 @@ log_debug() {
 
 
 # log print out log
-# allow to change prefix, suffix, line_width
-# log [--prefix x --suffix y --line_width numb] "log text here"
-# or
-# log "log text here" [--prefix x --suffix y --line_width numb]
-# added:
-#	--header, -h: make log redirect to log_header
-#	--title, -t "title str": make log redirect to log_title
-#	--step, -st: to make log step
-#	--end, -e: to make log_end
-#	--empty, -em: to make log_empty
+# log [options] message
+# 	options:
+#		<string> --prefix | -pf: allow to set prefix value
+#		<string> --suffix | -sf: allow to set suffix value
+#		<number> --line_width | -lw: allow to change line width value
+#		<string> --padding_str | -ps: allow to change padding string
+#		<switch> --header | -h: allow to call log_header from log function
+#		<switch> --title | -t: allow to call log_title from log function
+#		<switch> --empty | -e: allow to call log_empty from log function
+#		<switch> --end | -ed: allow to call log_end_from log function
 log() {
 	local args=("$@")
 	local str prefix suffix line_width padding_str
