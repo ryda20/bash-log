@@ -37,10 +37,16 @@ _replace_tab_by_spaces() {
 # log [--prefix x --suffix y --line_width numb] "log text here"
 # or
 # log "log text here" [--prefix x --suffix y --line_width numb]
+# added:
+#	--header: make log redirect to log_header
+#	--title "title str": make log redirect to log_title
 log() {
-	local str prefix suffix line_width padding_str
+	local args=("$@")
+	local str prefix suffix line_width padding_str header title title_str
 	while [[ $# -gt 0 ]]; do
 		case $1 in 
+		--header) header=1; log_debug "got header value"; break;;
+		--title) title=1; title_str=$2; log_debug "got title: $2"; shift; break;;
 		--suffix) shift; suffix="$1"; log_debug "got suffix: $1";;
 		--prefix) shift; prefix="$1"; log_debug "got prefix: $1";;
 		--line_width) shift; line_width="$1"; log_debug "got line_width: $1";;
@@ -54,7 +60,14 @@ log() {
 	suffix=${suffix:-""}
 	line_width=${line_width:-${RF_LINE_WIDTH:-90}}
 	padding_str="${padding_str:-" "}"
+	header=${header:-0}
 	str=` _replace_tab_by_spaces "${str}" `
+
+	# check if input set --title
+	[[ $title -gt 0 ]] && [[ -n "$title_str" ]] && log_title "${args[@]}" && return
+
+	# check if input set --header
+	[[ $header -gt 0 ]] && log_header "${args[@]}" && return
 
 	local padding=$(( line_width - ${#str} - ${#prefix} - ${#suffix} ))
 
@@ -72,6 +85,7 @@ log_header() {
 	local str line_width prefix suffix padding_str
 	while [[ $# -gt 0 ]]; do
 		case $1 in 
+		--header) shift; log_debug "got passing from log, so, skip this one";;
 		--suffix) shift; suffix="$1"; log_debug "got suffix: $1";;
 		--prefix) shift; prefix="$1"; log_debug "got prefix: $1";;
 		--line_width) shift; line_width="$1"; log_debug "got line_width: $1";;

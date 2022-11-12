@@ -23,14 +23,18 @@ targs() {
 
 tlog() {
 	log "log with default"
-	log_end
+	log_empty
 	log "log with prefix=** " --prefix "** "
-	log_end
+	log_empty
 	log "log with suffix=-- " --suffix "-- "
-	log_end
+	log_empty
 	log "log with line_width=100, suffix=#" --line_width 100 --suffix "#"
-	log_end
+	log_empty
 	log "log with line_width=100, suffix=#, padding_str=_ " --line_width 100 --suffix "#" --padding_str "_"
+	log_empty
+	log "this is header from log fn" --header
+	log_empty
+	log --title "i am a title" "i am a content of title log, calling from log fn"
 }
 tlogheader() {
 	log_header "log_header with default"
