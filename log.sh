@@ -28,34 +28,59 @@ log_debug() {
 	fi
 }
 
+
 # log print out log
 # allow to change prefix, suffix, line_width
 # log [--prefix x --suffix y --line_width numb] "log text here"
 # or
 # log "log text here" [--prefix x --suffix y --line_width numb]
 # added:
-#	--header: make log redirect to log_header
-#	--title "title str": make log redirect to log_title
+#	--header, -h: make log redirect to log_header
+#	--title, -t "title str": make log redirect to log_title
+#	--step, -st: to make log step
+#	--end, -e: to make log_end
+#	--empty, -em: to make log_empty
 log() {
 	local args=("$@")
-	local str prefix suffix line_width padding_str header title title_str
+	local str prefix suffix line_width padding_str
+	local is_header is_title title_str is_step is_end is_empty
 	while [[ $# -gt 0 ]]; do
 		case $1 in 
-		--header) header=1; log_debug "got header value"; break;;
-		--title) title=1; title_str=$2; log_debug "got title: $2"; shift; break;;
-		--suffix) shift; suffix="$1"; log_debug "got suffix: $1";;
-		--prefix) shift; prefix="$1"; log_debug "got prefix: $1";;
-		--line_width) shift; line_width="$1"; log_debug "got line_width: $1";;
-		--padding_str) shift; padding_str="$1"; log_debug "got padding_str: $1";;
-		*) str="$1"; log_debug "got str: $1";;
+		--end|-ed)
+			is_end=1; log_debug "got end switch"; break;;
+		--empty|-e)
+			is_empty=1; log_debug "got empty switch"; break;;
+		--step|-sp)
+			is_step=1; log_debug "got step switch";break;;
+		--header|-hr)
+			is_header=1; log_debug "got header switch"; break;;
+		--title|-t)
+			is_title=1; title_str="$2"; log_debug "got title switch with value: $2"; shift; break;;
+		--suffix|-sf)
+			shift; suffix="$1"; log_debug "got suffix: $1";;
+		--prefix|-pf)
+			shift; prefix="$1"; log_debug "got prefix: $1";;
+		--line_width|-lw)
+			shift; line_width="$1"; log_debug "got line_width: $1";;
+		--padding_str|-ps)
+			shift; padding_str="$1"; log_debug "got padding_str: $1";;
+		*)
+			str="$1"; log_debug "got str: $1";;
 		esac
 		shift
 	done
-	# check if input set --title
-	[[ $title -gt 0 ]] && [[ -n "$title_str" ]] && log_title "${args[@]}" && return
 
+	# check if input set --step
+	[[ $is_step -gt 0 ]] && log_step "${args[@]}" && return
+	# check if input set --title
+	[[ $is_title -gt 0 ]] && [[ -n "$title_str" ]] && log_title "${args[@]}" && return
 	# check if input set --header
-	[[ $header -gt 0 ]] && log_header "${args[@]}" && return
+	[[ $is_header -gt 0 ]] && log_header "${args[@]}" && return
+	# check if --empty, -emp
+	[[ $is_empty -gt 0 ]] && log_empty "${args[@]}" && return
+	# check if --end, -e
+	[[ $is_end -gt 0 ]] && log_end "${args[@]}" && return
+
 
 	# check and set default values
 	prefix=${prefix:-"# "}
@@ -81,11 +106,11 @@ log_header() {
 	local str line_width prefix suffix padding_str
 	while [[ $# -gt 0 ]]; do
 		case $1 in 
-		--header) shift; log_debug "got passing from log, so, skip this one";;
-		--suffix) shift; suffix="$1"; log_debug "got suffix: $1";;
-		--prefix) shift; prefix="$1"; log_debug "got prefix: $1";;
-		--line_width) shift; line_width="$1"; log_debug "got line_width: $1";;
-		--padding_str) shift; padding_str="$1"; log_debug "got padding_str: $1";;
+		--header|-hr) shift; log_debug "got passing from log, so, skip this one";;
+		--suffix|-sf) shift; suffix="$1"; log_debug "got suffix: $1";;
+		--prefix|-pf) shift; prefix="$1"; log_debug "got prefix: $1";;
+		--line_width|-lw) shift; line_width="$1"; log_debug "got line_width: $1";;
+		--padding_str|-ps) shift; padding_str="$1"; log_debug "got padding_str: $1";;
 		*) str="$1"; log_debug "got str: $1";;
 		esac
 		shift
@@ -115,11 +140,11 @@ log_title() {
 	local title str line_width prefix suffix padding_str ifs
 	while [[ $# -gt 0 ]]; do
 		case $1 in 
-		--title) shift; title="$1"; log_debug "got title: $1";;
-		--suffix) shift; suffix="$1"; log_debug "got suffix: $1";;
-		--prefix) shift; prefix="$1"; log_debug "got prefix: $1";;
-		--line_width) shift; line_width="$1"; log_debug "got line_width: $1";;
-		--padding_str) shift; padding_str="$1"; log_debug "got padding_str: $1";;
+		--title|-t) shift; title="$1"; log_debug "got title: $1";;
+		--suffix|-sf) shift; suffix="$1"; log_debug "got suffix: $1";;
+		--prefix|-pf) shift; prefix="$1"; log_debug "got prefix: $1";;
+		--line_width|-lw) shift; line_width="$1"; log_debug "got line_width: $1";;
+		--padding_str|-ps) shift; padding_str="$1"; log_debug "got padding_str: $1";;
 		--ifs) shift; ifs="$1"; log_debug "got ifs: $1";;
 		*) str="$1"; log_debug "got str: $1";;
 		esac
@@ -162,10 +187,10 @@ log_end() {
 	local line_width prefix suffix padding_str
 	while [[ $# -gt 0 ]]; do
 		case $1 in 
-		--suffix) shift; suffix="$1"; log_debug "got suffix: $1";;
-		--prefix) shift; prefix="$1"; log_debug "got prefix: $1";;
-		--line_width) shift; line_width="$1"; log_debug "got line_width: $1";;
-		--padding_str) shift; padding_str="$1"; log_debug "got padding_str: $1";;
+		--suffix|-sf) shift; suffix="$1"; log_debug "got suffix: $1";;
+		--prefix|-pf) shift; prefix="$1"; log_debug "got prefix: $1";;
+		--line_width|-lw) shift; line_width="$1"; log_debug "got line_width: $1";;
+		--padding_str|-ps) shift; padding_str="$1"; log_debug "got padding_str: $1";;
 		esac
 		shift
 	done
@@ -190,7 +215,6 @@ __BLOG_STEP_Y=0
 
 # log_step create a log with keeping the step in the top of console for easy following
 log_step() {
-
 	clear
 	__BLOG_STEP_MESSAGE="${__BLOG_STEP_MESSAGE}${__BLOG_STEP_SEP}${@}\n"
 	tput cup ${__BLOG_STEP_X} ${__BLOG_STEP_Y} 

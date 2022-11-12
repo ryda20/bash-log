@@ -33,8 +33,12 @@ tlog() {
 	log "log with line_width=100, suffix=#, padding_str=_ " --line_width 100 --suffix "#" --padding_str "_"
 	log_empty
 	log "this is header from log fn" --header
-	log_empty
+	log "this is header from log fn - again. using switch -hr" -hr
+	log --empty
 	log --title "i am a title" "i am a content of title log, calling from log fn"
+	log -e
+	log -t "i am a title by -t" "i am a content of title log, calling from log fn"
+	
 }
 tlogheader() {
 	log_header "log_header with default"
