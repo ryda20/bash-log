@@ -5,6 +5,39 @@ RF_FN_SKIP_PREFIX=""
 #import log.sh to test functions
 source log.sh
 
+step() {
+	clear
+	# Save cursor position
+    tput sc
+    # Add a new line
+    tput il 1
+    # Change scroll region to exclude the last lines
+    tput csr 0 $(($(tput lines) - 3))
+    # Move cursor to bottom line
+    tput cup $(tput lines) 0
+    # Clear to the end of the line
+    tput el
+    # Echo the content on that row
+    echo -en "Step 1/10:......"
+    # Restore cursor position
+    tput rc
+	
+	for i in $(seq 1 100); do
+		echo "i=$i"
+		if [[ $(( $i % 10 )) -eq 0 ]]; then
+			tput sc
+			# tput il 1
+			# tput csr 0 $(($(tput lines) - 3))
+			tput cup $(tput lines) 0
+			# tput el
+			echo -en "Step $(( i / 10 + 1 ))/10:......$i"
+			tput rc
+		fi 
+		sleep 0.5
+	done
+
+
+}
 # parse input value to get optional and default input value
 # below: option: suffix, prefix, line_width and main value is str
 targs() {
