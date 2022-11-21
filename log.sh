@@ -25,7 +25,17 @@ __BLOG_ERROR=$'\001'"$(tput setaf 1)"$'\002' # red
 __BLOG_OK=$'\001'"$(tput setaf 2)"$'\002' # green
 __BLOG_WARNING=$'\001'"$(tput setaf 3)"$'\002' # yellow
 
+__BLOG_TO_FILE=""
 
+# log_to_file set log file path
+log_to_file() {
+	__BLOG_TO_FILE=${1:-""}
+	[[ -z "$__BLOG_TO_FILE" ]] && return
+
+	local dir=`dirname "$____BLOG_TO_FILE"`
+	mkdir -p "$dir"
+	touch "$__BLOG_TO_FILE"
+}
 
 log_debug() {
 	# show log only when have log_debug.txt file or __BLOG_DEBUG env is greater than 0
@@ -103,7 +113,7 @@ log() {
 
 	log_debug "prefix: $prefix, suffix: $suffix, line_width: $line_width, padding: $padding"
 	
-	__blog_repeat --count $padding --prefix "${__BLOG_COLORS_RANDOM}${prefix}${str}" --suffix "${suffix}${__BLOG_NC}" "$padding_str"
+	__blog_repeat --count $padding --prefix "${prefix}${str}" --suffix "${suffix}" "$padding_str"
 }
 
 # log_header log text as header
@@ -152,7 +162,7 @@ log_header() {
 	
 	log_debug "prefix: $prefix, suffix: $suffix, line_width: $line_width, padding: $padding"
 
-	__blog_repeat --count ${padding} --prefix "${__BLOG_COLORS_RANDOM}${str}" --suffix "${suffix}${__BLOG_NC}" "${padding_str}"
+	__blog_repeat --count ${padding} --prefix "${str}" --suffix "${suffix}" "${padding_str}"
 }
 
 # log_title create a log have title and content
@@ -296,14 +306,28 @@ __blog_repeat() {
 	prefix="${prefix:-}"
 	suffix="${suffix:-}"
 
-	# add prefix on start
-	echo -en "${__BLOG_COLORS_RANDOM}${prefix}"
-	if [[ $count -gt 0 ]]; then
-		# range start at 1
-		local range=$( seq 1 ${count} )
-		for i in $range; do echo -n "${str}"; done
+	local timenow=`date +"%Y-%m-%d %T"`
+
+	# log to file if logFile exist, without color
+	if [[ -f "${__BLOG_TO_FILE}" ]]; then
+		# add prefix on start
+		echo -en "[${timenow}] ${prefix}" >> "${__BLOG_TO_FILE}"
+		if [[ $count -gt 0 ]]; then
+			# range start at 1
+			local range=$( seq 1 ${count} )
+			for i in $range; do echo -n "${str}" >> "${__BLOG_TO_FILE}"; done
+		fi
+		echo -e "${suffix}" >> "${__BLOG_TO_FILE}"
+	else
+		# add prefix on start
+		echo -en "${__BLOG_COLORS_RANDOM}${prefix}"
+		if [[ $count -gt 0 ]]; then
+			# range start at 1
+			local range=$( seq 1 ${count} )
+			for i in $range; do echo -n "${str}"; done
+		fi
+		echo -e "${suffix}${__BLOG_NC}"
 	fi
-	echo -e "${suffix}${__BLOG_NC}"
 }
 
 __blog_random_color_gen() {
