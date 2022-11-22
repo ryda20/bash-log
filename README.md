@@ -37,6 +37,6 @@ log_time [1 or 0]
 #		--end|-ed 			=> make a end log line (call log_end_from log function)
 #		--error 			=> make a error log message (red message) with prefix ERROR
 #		--warning 			=> make a warning log message (yellow message) with prefix WARN
-#		-info 				=> make a info log message (green message) with prefix INFO
+#		--info 				=> make a info log message (green message) with prefix INFO
 log [options] message
 ```

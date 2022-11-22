@@ -47,9 +47,6 @@ log_time() {
 }
 # log_to set log file path
 log_to() {
-	log_to_file "$@"
-}
-log_to_file() {
 	__BLOG_TO_FILE=${1:-""}
 	[[ -z "$__BLOG_TO_FILE" ]] && return
 
@@ -87,10 +84,14 @@ log() {
 	local warning=0 error=0 info=0 debug=0
 	while [[ $# -gt 0 ]]; do
 		case $1 in 
-		--warning)  warning=1;;
-		--error)  error=1;;
-		--info) info=1;;
-		--debug) debug=1;;
+		--warning)
+			warning=1;;
+		--error)
+			error=1;;
+		--info)
+			info=1;;
+		--debug)
+			debug=1;;
 		--end|-ed)
 			is_end=1; __log_debug "got end switch"; break;;
 		--empty|-e)
