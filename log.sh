@@ -1,50 +1,70 @@
 #!/bin/bash
 
 ## Variables ##
-__BLOG_NC=$'\001'"$(tput sgr0)"$'\002'
+__CS=$'\001' # color start code
+__CE=$'\002' # color end code
+__NOCOLOR=$__CS"$(tput sgr0)"$__CE
+#
+__BLACK=$__CS"$(tput setaf 0)"$__CE
+__RED=$__CS"$(tput setaf 1)"$__CE
+__GREEN=$__CS"$(tput setaf 2)"$__CE
+__YELLOW=$__CS"$(tput setaf 3)"$__CE
+__BLUE=$__CS"$(tput setaf 4)"$__CE
+__MAGENTA=$__CS"$(tput setaf 5)"$__CE
+__CYAN=$__CS"$(tput setaf 6)"$__CE
+__WHITE=$__CS"$(tput setaf 7)"$__CE
+__RESET_TO_DEFAULT_COLOR=$__CS"$(tput setaf 8)"$__CE
 
-__BLOG_COLORS[0]=$'\001'"$(tput setaf 0)"$'\002'
-__BLOG_COLORS[1]=$'\001'"$(tput setaf 2)"$'\002'
-__BLOG_COLORS[2]=$'\001'"$(tput setaf 3)"$'\002' # yellow
-__BLOG_COLORS[3]=$'\001'"$(tput setaf 190)"$'\002'
-__BLOG_COLORS[4]=$'\001'"$(tput setaf 153)"$'\002'
-__BLOG_COLORS[5]=$'\001'"$(tput setaf 4)"$'\002'
-__BLOG_COLORS[6]=$'\001'"$(tput setaf 5)"$'\002'
-__BLOG_COLORS[7]=$'\001'"$(tput setaf 6)"$'\002'
-# __BLOG_COLORS[8]=$'\001'"$(tput setaf 1)"$'\002'
-# __BLOG_COLORS[9]=$'\001'"$(tput setaf 7)"$'\002'
+__BLOG_COLORS[0]=$__BLACK
+__BLOG_COLORS[1]=$__GREEN
+__BLOG_COLORS[2]=$__YELLOW
+__BLOG_COLORS[3]=$__CS"$(tput setaf 190)"$__CE
+__BLOG_COLORS[4]=$__CS"$(tput setaf 153)"$__CE
+__BLOG_COLORS[5]=$__BLUE
+__BLOG_COLORS[6]=$__MAGENTA
+__BLOG_COLORS[7]=$__CYAN
 
 __BLOG_COLORS_SIZE=${#__BLOG_COLORS[@]}
 __BLOG_COLORS_INDEX=0
 __BLOG_COLORS_INDEX_PRE=0
 __BLOG_COLORS_RANDOM=${__BLOG_COLORS[$__BLOG_COLORS_INDEX]}  # default color is black
 
-__BLOG_DEBUG=0
+__BLOG_INTERNAL_DEBUG=0
 
-__BLOG_ERROR=$'\001'"$(tput setaf 1)"$'\002' # red
-__BLOG_OK=$'\001'"$(tput setaf 2)"$'\002' # green
-__BLOG_WARNING=$'\001'"$(tput setaf 3)"$'\002' # yellow
+__BLOG_ERROR=$__RED
+__BLOG_INFO=$__GREEN
+__BLOG_WARNING=$__YELLOW
+__BLOG_DEBUG=$__MAGENTA
 
+# the file path to save log
 __BLOG_TO_FILE=""
 
-# log_to_file set log file path
+__BLOG_TIME=1
+
+# log_timme: enable date-time prefix or not
+log_time() {
+	__BLOG_TIME=${1:-1}
+}
+# log_to set log file path
+log_to() {
+	log_to_file "$@"
+}
 log_to_file() {
 	__BLOG_TO_FILE=${1:-""}
 	[[ -z "$__BLOG_TO_FILE" ]] && return
 
-	local dir=`dirname "$____BLOG_TO_FILE"`
+	local dir=`dirname "$__BLOG_TO_FILE"`
 	mkdir -p "$dir"
 	touch "$__BLOG_TO_FILE"
 }
 
-log_debug() {
-	# show log only when have log_debug.txt file or __BLOG_DEBUG env is greater than 0
-	if [ -f "log_debug.txt" -o $__BLOG_DEBUG -gt 0 ]; then
+# __log_debug internal debug log
+__log_debug() {
+	# show log only when have __log_debug.txt file or __BLOG_INTERNAL_DEBUG env is greater than 0
+	if [[ -f "debug.txt" ]] || [[ $__BLOG_INTERNAL_DEBUG -gt 0 ]]; then
 		log "${1}"
 	fi
 }
-
-
 # log print out log
 # log [options] message
 # 	options:
@@ -58,33 +78,39 @@ log_debug() {
 #		<switch> --end | -ed: allow to call log_end_from log function
 #		<switch> --error: show as error message
 #		<switch> --warning: show as warning message
-#		<switch> --success: show as sucess message
+#		<switch> --info: show as sucess message
+#		<switch> --debug: show a debug message
 log() {
 	local args=("$@")
 	local str prefix suffix line_width padding_str
 	local is_header is_title title_str is_step is_end is_empty
+	local warning=0 error=0 info=0 debug=0
 	while [[ $# -gt 0 ]]; do
 		case $1 in 
+		--warning)  warning=1;;
+		--error)  error=1;;
+		--info) info=1;;
+		--debug) debug=1;;
 		--end|-ed)
-			is_end=1; log_debug "got end switch"; break;;
+			is_end=1; __log_debug "got end switch"; break;;
 		--empty|-e)
-			is_empty=1; log_debug "got empty switch"; break;;
+			is_empty=1; __log_debug "got empty switch"; break;;
 		--step|-sp)
-			is_step=1; log_debug "got step switch";break;;
+			is_step=1; __log_debug "got step switch";break;;
 		--header|-hr)
-			is_header=1; log_debug "got header switch"; break;;
+			is_header=1; __log_debug "got header switch"; break;;
 		--title|-t)
-			is_title=1; title_str="$2"; log_debug "got title switch with value: $2"; shift; break;;
+			is_title=1; title_str="$2"; __log_debug "got title switch with value: $2"; shift; break;;
 		--suffix|-sf)
-			shift; suffix="$1"; log_debug "got suffix: $1";;
+			shift; suffix="$1"; __log_debug "got suffix: $1";;
 		--prefix|-pf)
-			shift; prefix="$1"; log_debug "got prefix: $1";;
+			shift; prefix="$1"; __log_debug "got prefix: $1";;
 		--line_width|-lw)
-			shift; line_width="$1"; log_debug "got line_width: $1";;
+			shift; line_width="$1"; __log_debug "got line_width: $1";;
 		--padding_str|-ps)
-			shift; padding_str="$1"; log_debug "got padding_str: $1";;
+			shift; padding_str="$1"; __log_debug "got padding_str: $1";;
 		*)
-			str="$1"; log_debug "got str: $1";;
+			str="$1"; __log_debug "got str: $1";;
 		esac
 		shift
 	done
@@ -100,7 +126,7 @@ log() {
 	# check if --end, -e
 	[[ $is_end -gt 0 ]] && log_end "${args[@]}" && return
 
-
+	
 	# check and set default values
 	prefix=${prefix:-"# "}
 	suffix=${suffix:-""}
@@ -109,9 +135,26 @@ log() {
 	header=${header:-0}
 	str=` __blog_replace_tab_by_space "${str}" `
 
+	# check warning, error, info switch and default to color
+	if [[ ${warning} -gt 0 ]]; then
+		__BLOG_COLORS_RANDOM=$__BLOG_WARNING
+		prefix="[WARN] ${prefix}"
+	elif [[ ${error} -gt 0 ]]; then	
+		__BLOG_COLORS_RANDOM=$__BLOG_ERROR
+		prefix="[ERROR] ${prefix}"
+	elif [[ ${info} -gt 0 ]]; then
+		__BLOG_COLORS_RANDOM=$__BLOG_INFO
+		prefix="[INFO] ${prefix}"
+	elif [[ ${debug} -gt 0 ]]; then
+		__BLOG_COLORS_RANDOM=$__BLOG_DEBUG
+		prefix="[DEBUG] ${prefix}"
+	#else
+		#__blog_random_color_gen
+	fi
+
 	local padding=$(( line_width - ${#str} - ${#prefix} - ${#suffix} ))
 
-	log_debug "prefix: $prefix, suffix: $suffix, line_width: $line_width, padding: $padding"
+	__log_debug "prefix: $prefix, suffix: $suffix, line_width: $line_width, padding: $padding"
 	
 	__blog_repeat --count $padding --prefix "${prefix}${str}" --suffix "${suffix}" "$padding_str"
 }
@@ -123,18 +166,16 @@ log() {
 # log_header "log text here" [--prefix x --suffix y --line_width numb]
 log_header() {
 	local str line_width prefix suffix padding_str
-	local warning=0 error=0 sucess=0
+	
 	while [[ $# -gt 0 ]]; do
 		case $1 in 
-		--warning)  warning=1;;
-		--error)  error=1;;
-		--sucess) sucess=1;;
-		--header|-hr) log_debug "got passing from log, so, skip this one";;
-		--suffix|-sf) shift; suffix="$1"; log_debug "got suffix: $1";;
-		--prefix|-pf) shift; prefix="$1"; log_debug "got prefix: $1";;
-		--line_width|-lw) shift; line_width="$1"; log_debug "got line_width: $1";;
-		--padding_str|-ps) shift; padding_str="$1"; log_debug "got padding_str: $1";;
-		*) str="$1"; log_debug "got str: $1";;
+		
+		--header|-hr) __log_debug "got passing from log, so, skip this one";;
+		--suffix|-sf) shift; suffix="$1"; __log_debug "got suffix: $1";;
+		--prefix|-pf) shift; prefix="$1"; __log_debug "got prefix: $1";;
+		--line_width|-lw) shift; line_width="$1"; __log_debug "got line_width: $1";;
+		--padding_str|-ps) shift; padding_str="$1"; __log_debug "got padding_str: $1";;
+		*) str="$1"; __log_debug "got str: $1";;
 		esac
 		shift
 	done
@@ -145,22 +186,22 @@ log_header() {
 	padding_str="${padding_str:-"="}"
 	str=` __blog_replace_tab_by_space "${str}" `
 	
-	# check warning, error, ok switch and default to color
-	if [[ ${warning} -gt 0 ]]; then
-		__BLOG_COLORS_RANDOM=$__BLOG_WARNING
-	elif [[ ${error} -gt 0 ]]; then	
-		__BLOG_COLORS_RANDOM=$__BLOG_ERROR
-	elif [[ ${sucess} -gt 0 ]]; then
-		__BLOG_COLORS_RANDOM=$__BLOG_OK
-	else
+	# # check warning, error, ok switch and default to color
+	# if [[ ${warning} -gt 0 ]]; then
+	# 	__BLOG_COLORS_RANDOM=$__BLOG_WARNING
+	# elif [[ ${error} -gt 0 ]]; then	
+	# 	__BLOG_COLORS_RANDOM=$__BLOG_ERROR
+	# elif [[ ${sucess} -gt 0 ]]; then
+	# 	__BLOG_COLORS_RANDOM=$__BLOG_INFO
+	# else
 		__blog_random_color_gen
-	fi
+	# fi
 
-	log_debug "random color to "
+	__log_debug "random color to "
 	str="${prefix} ${str} ${prefix}" # append 2 prefix to str
 	local padding=$(( line_width - ${#str} - ${#suffix} ))
 	
-	log_debug "prefix: $prefix, suffix: $suffix, line_width: $line_width, padding: $padding"
+	__log_debug "prefix: $prefix, suffix: $suffix, line_width: $line_width, padding: $padding"
 
 	__blog_repeat --count ${padding} --prefix "${str}" --suffix "${suffix}" "${padding_str}"
 }
@@ -173,13 +214,13 @@ log_title() {
 	local title str line_width prefix suffix padding_str ifs
 	while [[ $# -gt 0 ]]; do
 		case $1 in 
-		--title|-t) shift; title="$1"; log_debug "got title: $1";;
-		--suffix|-sf) shift; suffix="$1"; log_debug "got suffix: $1";;
-		--prefix|-pf) shift; prefix="$1"; log_debug "got prefix: $1";;
-		--line_width|-lw) shift; line_width="$1"; log_debug "got line_width: $1";;
-		--padding_str|-ps) shift; padding_str="$1"; log_debug "got padding_str: $1";;
-		--ifs) shift; ifs="$1"; log_debug "got ifs: $1";;
-		*) str="$1"; log_debug "got str: $1";;
+		--title|-t) shift; title="$1"; __log_debug "got title: $1";;
+		--suffix|-sf) shift; suffix="$1"; __log_debug "got suffix: $1";;
+		--prefix|-pf) shift; prefix="$1"; __log_debug "got prefix: $1";;
+		--line_width|-lw) shift; line_width="$1"; __log_debug "got line_width: $1";;
+		--padding_str|-ps) shift; padding_str="$1"; __log_debug "got padding_str: $1";;
+		--ifs) shift; ifs="$1"; __log_debug "got ifs: $1";;
+		*) str="$1"; __log_debug "got str: $1";;
 		esac
 		shift
 	done
@@ -206,7 +247,7 @@ log_title() {
 		line="$( __blog_replace_tab_by_space "${line}" )"
 		padding=$(( line_width - ${#line} - ${#prefix} - ${#suffix} ))
 		
-		# log_debug "line len: ${#line}, padding: ${padding}"
+		# __log_debug "line len: ${#line}, padding: ${padding}"
 		
 		[[ $padding -lt 1 ]] && padding=0
 		__blog_repeat --count ${padding} --prefix "${prefix}${line}" --suffix "${suffix}" "${padding_str}"
@@ -220,10 +261,10 @@ log_end() {
 	local line_width prefix suffix padding_str
 	while [[ $# -gt 0 ]]; do
 		case $1 in 
-		--suffix|-sf) shift; suffix="$1"; log_debug "got suffix: $1";;
-		--prefix|-pf) shift; prefix="$1"; log_debug "got prefix: $1";;
-		--line_width|-lw) shift; line_width="$1"; log_debug "got line_width: $1";;
-		--padding_str|-ps) shift; padding_str="$1"; log_debug "got padding_str: $1";;
+		--suffix|-sf) shift; suffix="$1"; __log_debug "got suffix: $1";;
+		--prefix|-pf) shift; prefix="$1"; __log_debug "got prefix: $1";;
+		--line_width|-lw) shift; line_width="$1"; __log_debug "got line_width: $1";;
+		--padding_str|-ps) shift; padding_str="$1"; __log_debug "got padding_str: $1";;
 		esac
 		shift
 	done
@@ -294,10 +335,10 @@ __blog_repeat() {
 	local str count prefix suffix
 	while [[ $# -gt 0 ]]; do
 		case $1 in 
-		--suffix) shift; suffix="$1"; log_debug "got suffix: $1";;
-		--prefix) shift; prefix="$1"; log_debug "got prefix: $1";;
-		--count) shift; count="$1"; log_debug "got count: $1";;
-		*) str="$1"; log_debug "got str: $1";;
+		--suffix) shift; suffix="$1"; __log_debug "got suffix: $1";;
+		--prefix) shift; prefix="$1"; __log_debug "got prefix: $1";;
+		--count) shift; count="$1"; __log_debug "got count: $1";;
+		*) str="$1"; __log_debug "got str: $1";;
 		esac
 		shift
 	done
@@ -306,12 +347,13 @@ __blog_repeat() {
 	prefix="${prefix:-}"
 	suffix="${suffix:-}"
 
-	local timenow=`date +"%Y-%m-%d %T"`
+	local timenow=""
+	[[ $__BLOG_TIME -gt 0 ]] && timenow="[`date +"%Y-%m-%d %T"`] "
 
 	# log to file if logFile exist, without color
 	if [[ -f "${__BLOG_TO_FILE}" ]]; then
 		# add prefix on start
-		echo -en "[${timenow}] ${prefix}" >> "${__BLOG_TO_FILE}"
+		echo -en "${timenow}${prefix}" >> "${__BLOG_TO_FILE}"
 		if [[ $count -gt 0 ]]; then
 			# range start at 1
 			local range=$( seq 1 ${count} )
@@ -320,13 +362,13 @@ __blog_repeat() {
 		echo -e "${suffix}" >> "${__BLOG_TO_FILE}"
 	else
 		# add prefix on start
-		echo -en "${__BLOG_COLORS_RANDOM}${prefix}"
+		echo -en "${__BLOG_COLORS_RANDOM}${timenow}${prefix}"
 		if [[ $count -gt 0 ]]; then
 			# range start at 1
 			local range=$( seq 1 ${count} )
 			for i in $range; do echo -n "${str}"; done
 		fi
-		echo -e "${suffix}${__BLOG_NC}"
+		echo -e "${suffix}${__NOCOLOR}"
 	fi
 }
 
