@@ -5,6 +5,12 @@ RF_FN_SKIP_PREFIX=""
 #import log.sh to test functions
 source log.sh
 
+mergetomaster() {
+	git checkout master &&
+	git merge dev &&
+	git push origin master &&
+	git checkout dev
+}
 logtofile() {
 	log_to_file "/tmp/abc.log"
 	log "this is my log"
