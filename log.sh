@@ -351,31 +351,23 @@ __blog_repeat() {
 	local timenow=""
 	[[ $__BLOG_TIME -gt 0 ]] && timenow="[`date +"%Y-%m-%d %T"`] "
 
-	# # log to file if logFile exist, without color
-	# if [[ -f "${__BLOG_TO_FILE}" ]]; then
-	# 	# add prefix on start
-	# 	echo -en "${timenow}${prefix}" >> "${__BLOG_TO_FILE}"
-	# 	if [[ $count -gt 0 ]]; then
-	# 		# range start at 1
-	# 		local range=$( seq 1 ${count} )
-	# 		for i in $range; do echo -n "${str}" >> "${__BLOG_TO_FILE}"; done
-	# 	fi
-	# 	echo -e "${suffix}" >> "${__BLOG_TO_FILE}"
-	# else
-		# add prefix on start
-		echo -en "${__BLOG_COLORS_RANDOM}${timenow}${prefix}"
-		[[ -f "${__BLOG_TO_FILE}" ]] && echo -en "${timenow}${prefix}" >> "${__BLOG_TO_FILE}"
-		if [[ $count -gt 0 ]]; then
-			# range start at 1
-			local range=$( seq 1 ${count} )
-			for i in $range; do
-				echo -n "${str}"
-				[[ -f "${__BLOG_TO_FILE}" ]] && echo -n "${str}" >> "${__BLOG_TO_FILE}"
-			done
-		fi
-		echo -e "${suffix}${__NOCOLOR}"
-		[[ -f "${__BLOG_TO_FILE}" ]] && echo -e "${suffix}" >> "${__BLOG_TO_FILE}"
-	# fi
+	# log prefix to stdout and file if any
+	echo -en "${__BLOG_COLORS_RANDOM}${timenow}${prefix}"
+	[[ -f "${__BLOG_TO_FILE}" ]] && echo -en "${timenow}${prefix}" >> "${__BLOG_TO_FILE}"
+	
+	# log content to stdout and file if any
+	if [[ $count -gt 0 ]]; then
+		# range start at 1
+		local range=$( seq 1 ${count} )
+		for i in $range; do
+			echo -n "${str}"
+			[[ -f "${__BLOG_TO_FILE}" ]] && echo -n "${str}" >> "${__BLOG_TO_FILE}"
+		done
+	fi
+
+	# log suffix to stdout and file if any
+	echo -en "${suffix}${__NOCOLOR}"
+	[[ -f "${__BLOG_TO_FILE}" ]] && echo -en "${suffix}" >> "${__BLOG_TO_FILE}"
 }
 
 __blog_random_color_gen() {
