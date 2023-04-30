@@ -96,9 +96,9 @@ log() {
 			is_end=1; __log_debug "got end switch"; break;;
 		--empty|-e)
 			is_empty=1; __log_debug "got empty switch"; break;;
-		--step|-sp)
+		--step|-s)
 			is_step=1; __log_debug "got step switch";break;;
-		--header|-hr)
+		--header|-h)
 			is_header=1; __log_debug "got header switch"; break;;
 		--title|-t)
 			is_title=1; title_str="$2"; __log_debug "got title switch with value: $2"; shift; break;;
@@ -108,7 +108,7 @@ log() {
 			shift; prefix="$1"; __log_debug "got prefix: $1";;
 		--line_width|-lw)
 			shift; line_width="$1"; __log_debug "got line_width: $1";;
-		--padding_str|-ps)
+		--padding_str|-p)
 			shift; padding_str="$1"; __log_debug "got padding_str: $1";;
 		*)
 			str="$1"; __log_debug "got str: $1";;
