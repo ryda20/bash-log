@@ -116,17 +116,22 @@ log() {
 		shift
 	done
 
-	# check if input set --step
-	[[ $is_step -gt 0 ]] && log_step "${args[@]}" && return
-	# check if input set --title
-	[[ $is_title -gt 0 ]] && [[ -n "$title_str" ]] && log_title "${args[@]}" && return
-	# check if input set --header
-	[[ $is_header -gt 0 ]] && log_header "${args[@]}" && return
-	# check if --empty, -emp
-	[[ $is_empty -gt 0 ]] && log_empty "${args[@]}" && return
-	# check if --end, -e
-	[[ $is_end -gt 0 ]] && log_end "${args[@]}" && return
-
+	if [[ $is_step -gt 0 ]]; then # check if input set --step
+		log_step "${args[@]}";
+		return
+	else if [[ $is_title -gt 0 ]]; then # check if input set --title
+		log_title "${args[@]}";
+		return
+	else if [[ $is_header -gt 0 ]]; then # check if input set --header
+		log_header "${args[@]}";
+		return
+	else if [[ $is_empty -gt 0 ]]; then # check if --empty, -emp
+		log_empty "${args[@]}";
+		return
+	else if [[ $is_end -gt 0 ]]; then # check if --end, -e
+		log_end "${args[@]}";
+		return
+	fi
 	
 	# check and set default values
 	prefix=${prefix:-"# "}
@@ -170,13 +175,12 @@ log_header() {
 	
 	while [[ $# -gt 0 ]]; do
 		case $1 in 
-		
-		--header|-hr) __log_debug "got passing from log, so, skip this one";;
-		--suffix|-sf) shift; suffix="$1"; __log_debug "got suffix: $1";;
-		--prefix|-pf) shift; prefix="$1"; __log_debug "got prefix: $1";;
-		--line_width|-lw) shift; line_width="$1"; __log_debug "got line_width: $1";;
-		--padding_str|-ps) shift; padding_str="$1"; __log_debug "got padding_str: $1";;
-		*) str="$1"; __log_debug "got str: $1";;
+			--header|-hr) __log_debug "got passing from log, so, skip this one";;
+			--suffix|-sf) shift; suffix="$1"; __log_debug "got suffix: $1";;
+			--prefix|-pf) shift; prefix="$1"; __log_debug "got prefix: $1";;
+			--line_width|-lw) shift; line_width="$1"; __log_debug "got line_width: $1";;
+			--padding_str|-ps) shift; padding_str="$1"; __log_debug "got padding_str: $1";;
+			*) str="$1"; __log_debug "got str: $1";;
 		esac
 		shift
 	done
@@ -187,19 +191,9 @@ log_header() {
 	padding_str="${padding_str:-"="}"
 	str=` __blog_replace_tab_by_space "${str}" `
 	
-	# # check warning, error, ok switch and default to color
-	# if [[ ${warning} -gt 0 ]]; then
-	# 	__BLOG_COLORS_RANDOM=$__BLOG_WARNING
-	# elif [[ ${error} -gt 0 ]]; then	
-	# 	__BLOG_COLORS_RANDOM=$__BLOG_ERROR
-	# elif [[ ${sucess} -gt 0 ]]; then
-	# 	__BLOG_COLORS_RANDOM=$__BLOG_INFO
-	# else
-		__blog_random_color_gen
-	# fi
+	__blog_random_color_gen
 
-	__log_debug "random color to "
-	str="${prefix} ${str} ${prefix}" # append 2 prefix to str
+	str="${prefix} ${str} ${prefix}" # append 2 prefix to str, look like ### header ###
 	local padding=$(( line_width - ${#str} - ${#suffix} ))
 	
 	__log_debug "prefix: $prefix, suffix: $suffix, line_width: $line_width, padding: $padding"
