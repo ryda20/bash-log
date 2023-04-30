@@ -366,6 +366,7 @@ __blog_repeat() {
 	fi
 
 	# log suffix to stdout and file if any
+	# dont use -n to make a new line
 	echo -e "${suffix}${__NOCOLOR}"
 	[[ -f "${__BLOG_TO_FILE}" ]] && echo -e "${suffix}" >> "${__BLOG_TO_FILE}"
 }
