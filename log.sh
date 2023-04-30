@@ -366,8 +366,8 @@ __blog_repeat() {
 	fi
 
 	# log suffix to stdout and file if any
-	echo -en "${suffix}${__NOCOLOR}"
-	[[ -f "${__BLOG_TO_FILE}" ]] && echo -en "${suffix}" >> "${__BLOG_TO_FILE}"
+	echo -e "${suffix}${__NOCOLOR}"
+	[[ -f "${__BLOG_TO_FILE}" ]] && echo -e "${suffix}" >> "${__BLOG_TO_FILE}"
 }
 
 __blog_random_color_gen() {
