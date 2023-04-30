@@ -116,19 +116,24 @@ log() {
 		shift
 	done
 
-	if [[ $is_step -gt 0 ]]; then # check if input set --step
+	if [[ $is_step -gt 0 ]]; then
+		# check if input set --step
 		log_step "${args[@]}";
 		return
-	elif [[ $is_title -gt 0 ]]; then # check if input set --title
+	elif [[ $is_title -gt 0 ]]; then
+		# check if input set --title
 		log_title "${args[@]}";
 		return
-	elif [[ $is_header -gt 0 ]]; then # check if input set --header
+	elif [[ $is_header -gt 0 ]]; then
+		# check if input set --header
 		log_header "${args[@]}";
 		return
-	elif [[ $is_empty -gt 0 ]]; then # check if --empty, -emp
+	elif [[ $is_empty -gt 0 ]]; then
+		# check if --empty, -emp
 		log_empty "${args[@]}";
 		return
-	elif [[ $is_end -gt 0 ]]; then # check if --end, -e
+	elif [[ $is_end -gt 0 ]]; then
+		# check if --end, -e
 		log_end "${args[@]}";
 		return
 	fi
