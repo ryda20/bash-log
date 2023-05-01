@@ -59,9 +59,91 @@ log_to() {
 __log_debug() {
 	# show log only when have __log_debug.txt file or __BLOG_INTERNAL_DEBUG env is greater than 0
 	if [[ -f "debug.txt" ]] || [[ $__BLOG_INTERNAL_DEBUG -gt 0 ]]; then
-		log "${1}"
+		echo "${1}"
 	fi
 }
+
+
+__blog_replace_tab_by_space() {
+	echo -e "${1}" | sed 's/\t/    /g'
+}
+
+# replace <b></b> with bold code \e[1m \e[21m
+# replace <i></i> with italic code \e[3m \e[23m
+# replace <u></u> with underline code \e[4m \e[24m
+# replace <s></s> with strikethrough code \e[9m \e[29m
+# https://misc.flogisoft.com/bash/tip_colors_and_formatting
+# 0 - Normal Style
+# 1 - Bold
+# 2 - Dim
+# 3 - Italic
+# 4 - Underlined
+# 5 - Blinking
+# 7 - Reverse
+# 8 - Invisible - hidden
+# Note:
+# 2 is for dim color, not disabling bold. 
+# 22 is for disabling dim and bold. 
+# Disabling bold with 21 is not widely supported (e.g. no support on macOS)
+#
+__blog_text_style() {
+	local str="$1"
+	str=$( echo $str | sed \
+		-e 's%<b>%\\e[1m%g' -e 's%</b>%\\e[22m%g' \
+		-e 's%<d>%\\e[2m%g' -e 's%</d>%\\e[22m%g' \
+		-e 's%<i>%\\e[3m%g' -e 's%</i>%\\e[23m%g' \
+		-e 's%<u>%\\e[4m%g' -e 's%</u>%\\e[24m%g' \
+		-e 's%<blink>%\\e[5m%g' -e 's%</blink>%\\e[25m%g' \
+		-e 's%<r>%\\e[7m%g' -e 's%</r>%\\e[27m%g' \
+		-e 's%<h>%\\e[8m%g' -e 's%</h>%\\e[28m%g' \
+		-e 's%<s>%\\e[9m%g' -e 's%</s>%\\e[29m%g' \
+	)
+	echo "$str"
+}
+
+__blog_text_match_count() {
+	local str="$1"
+	local count=0
+
+	# how many html tag need to replace on this str?
+	# note: grep have -c option to count matching but it only count in multiline,
+	#		if one line have two or more, it just calculate as 1
+	# that is reason, we use wc with -l (line count) option after 
+	#	grep -o (print out match only, each match per line)
+	#
+	local countx=0
+	countx=$(echo "$str" | grep -o "<b>" | wc -l)
+	count=$(( $count + $countx ))
+	countx=$(echo "$str" | grep -o "<d>" | wc -l)
+	count=$(( $count + $countx ))
+	countx=$(echo "$str" | grep -o "<i>" | wc -l)
+	count=$(( $count + $countx ))
+	countx=$(echo "$str" | grep -o "<u>" | wc -l)
+	count=$(( $count + $countx ))
+	countx=$(echo "$str" | grep -o "<blink>" | wc -l)
+	count=$(( $count + $countx ))
+	countx=$(echo "$str" | grep -o "<r>" | wc -l)
+	count=$(( $count + $countx ))
+	countx=$(echo "$str" | grep -o "<h>" | wc -l)
+	count=$(( $count + $countx ))
+	countx=$(echo "$str" | grep -o "<s>" | wc -l)
+	count=$(( $count + $countx ))
+	# count=$(( $count + $(echo "$str" | grep -o "<b>" | wc -l) ))
+	# count=$(( $count + $(echo "$str" | grep -o "<d>" | wc -l) ))
+	# count=$(( $count + $(echo "$str" | grep -o "<i>" | wc -l) ))
+	# count=$(( $count + $(echo "$str" | grep -o "<u>" | wc -l) ))
+	# count=$(( $count + $(echo "$str" | grep -o "<blink>" | wc -l) ))
+	# count=$(( $count + $(echo "$str" | grep -o "<r>" | wc -l) ))
+	# count=$(( $count + $(echo "$str" | grep -o "<h>" | wc -l) ))
+	# count=$(( $count + $(echo "$str" | grep -o "<s>" | wc -l) ))
+
+	echo "$count"
+}
+
+
+
+
+
 # log print out log
 # log [options] message
 # 	options:
@@ -97,7 +179,7 @@ log() {
 		--empty|-e)
 			is_empty=1; __log_debug "got empty switch"; break;;
 		--step|-s)
-			is_step=1; __log_debug "got step switch";break;;
+			is_step=1; __log_debug "got step switch"; break;;
 		--header|-h)
 			is_header=1; __log_debug "got header switch"; break;;
 		--title|-t)
@@ -199,10 +281,10 @@ log_header() {
 
 	# replace tab by space
 	str=` __blog_replace_tab_by_space "${str}" `
-	# make header bold as default -> line_width must be change too (+10)
+	# make header bold as default -> line_width must be change too (+11 chars)
 	if [[ "$bold_header" == "yes" ]]; then
-		str="\e[1m$str\e[0m"
-		line_width=$(( $line_width + 10 ))
+		str="\e[1m$str\e[22m"
+		line_width=$(( $line_width + 11 ))
 	fi
 
 	__blog_random_color_gen
@@ -241,15 +323,14 @@ log_title() {
 	padding_str="${padding_str:-" "}"
 	title="${title:-""}"
 
-	str=` __blog_replace_tab_by_space "${str}" `
-	# replace some 'html' text style with shell color/style code
-	str=$(__blog_text_style "$str")
-	
-	ifs=${ifs:-$'\n'}
-
 	# re-calculate line_width with prefix and suffix
-	line_width=$(( line_width + ${#prefix} + ${#suffix} ))
+	line_width=$(( $line_width + ${#prefix} + ${#suffix} ))
 
+	# str=` __blog_replace_tab_by_space "${str}" `
+	# # replace some 'html' text style with shell color/style code
+	# str=$(__blog_text_style "$str")
+
+	ifs=${ifs:-$'\n'}
 	local padding=0
 
 	# print out header
@@ -257,10 +338,18 @@ log_title() {
 	
 	local saveIFS="$IFS" && IFS=$ifs
 	for line in ${str}; do
-		line="$( __blog_replace_tab_by_space "${line}" )"
-		padding=$(( line_width - ${#line} - ${#prefix} - ${#suffix} ))
 		
-		# __log_debug "line len: ${#line}, padding: ${padding}"
+		line="$( __blog_replace_tab_by_space "${line}" )"
+		match_count=$( __blog_text_match_count "$line" ) # count matche number before replace
+		line=$(__blog_text_style "$line") # replace some 'html' text style with shell color/style code
+		
+		# for i,b,... text syle - those character does not display on page
+		# but still count on length, so, we much to increase more padding
+		# when using those style. Each match will count 11 chars (\e[1m and \e[xxm)
+		#
+		padding=$(( $line_width - ${#line} - ${#prefix} - ${#suffix} + $match_count * 11 ))
+		
+		__log_debug "line_width: ${line_width}, line_len: ${#line}, padding: ${padding}"
 		
 		[[ $padding -lt 1 ]] && padding=0
 		__blog_repeat --count ${padding} --prefix "${prefix}" --suffix "${suffix}" --padding_str "${padding_str}" ${line}
@@ -336,44 +425,6 @@ log_step_reset() {
 	__BLOG_STEP_X=0
 	__BLOG_STEP_Y=0
 }
-
-__blog_replace_tab_by_space() {
-	echo -e "${1}" | sed 's/\t/    /g'
-}
-
-# replace <b></b> with bold code \e[1m \e[21m
-# replace <i></i> with italic code \e[3m \e[23m
-# replace <u></u> with underline code \e[4m \e[24m
-# replace <s></s> with strikethrough code \e[9m \e[29m
-# https://misc.flogisoft.com/bash/tip_colors_and_formatting
-# 0 - Normal Style
-# 1 - Bold
-# 2 - Dim
-# 3 - Italic
-# 4 - Underlined
-# 5 - Blinking
-# 7 - Reverse
-# 8 - Invisible - hidden
-# Note:
-# 2 is for dim color, not disabling bold. 
-# 22 is for disabling dim and bold. 
-# Disabling bold with 21 is not widely supported (e.g. no support on macOS)
-
-__blog_text_style() {
-	local str="$1"
-	str=$( echo $str | sed \
-		-e 's%<b>%\\e[1m%g' -e 's%</b>%\\e[22m%g' \
-		-e 's%<d>%\\e[2m%g' -e 's%</d>%\\e[22m%g' \
-		-e 's%<i>%\\e[3m%g' -e 's%</i>%\\e[23m%g' \
-		-e 's%<u>%\\e[4m%g' -e 's%</u>%\\e[24m%g' \
-		-e 's%<blink>%\\e[5m%g' -e 's%</blink>%\\e[25m%g' \
-		-e 's%<r>%\\e[7m%g' -e 's%</r>%\\e[27m%g' \
-		-e 's%<h>%\\e[8m%g' -e 's%</h>%\\e[28m%g' \
-		-e 's%<s>%\\e[9m%g' -e 's%</s>%\\e[29m%g' \
-	)
-	echo "$str"
-}
-
 
 # __blog_repeat will printout prefix, str, suffix and padding_str (fill out full linewidth)
 # it repeat padding_str char N times until come to linewidth value

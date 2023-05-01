@@ -111,6 +111,12 @@ tlogtitle() {
 	log_title "log_title with line_width=100, suffix=#" --line_width 100 --suffix "#" --title "i am a title"
 	log_empty
 	log_title "log_title with line_width=100, suffix=#, padding_str=_ " --line_width 100 --suffix "#" --padding_str "_" --title "i am a title"
+
+	log_title --title "my title" "
+	this is <i>italic</i> text
+	this is <b>bold</b> text
+	this is <d>dim</d> and <blink>blink</blink> text
+	"
 }
 
 tlogstep() {
