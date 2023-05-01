@@ -81,6 +81,7 @@ __blog_replace_tab_by_space() {
 # 5 - Blinking
 # 7 - Reverse
 # 8 - Invisible - hidden
+# 9 - strikethrought
 # Note:
 # 2 is for dim color, not disabling bold. 
 # 22 is for disabling dim and bold. 

@@ -146,9 +146,14 @@ tlogstep() {
 tlogtextstyle() {
 	
 	log "this is <b>bold</b> text <i>here</i> another"
+	log "this is <d>dim</d> text"
 	log "this is <i>italic</i> text"
 	log "this is <u>underline</u> text"
+	log "this is <blink>blink</blink> text"
+	log "this is <r>reverse</r> text"
+	log "this is hidden <h>hidden</h> text"
 	log "this is <s>strikethrough</s> text"
+
 }
 ##endregion USER =================================================
 __start_app "$@" # MUST_END_OF_FILE
