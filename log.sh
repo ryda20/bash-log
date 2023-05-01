@@ -354,8 +354,8 @@ __blog_repeat() {
 		# range start at 1
 		local range=$( seq 1 ${count} )
 		for i in $range; do
-			echo -n "${str}"
-			[[ -f "${__BLOG_TO_FILE}" ]] && echo -n "${str}" >> "${__BLOG_TO_FILE}"
+			echo -en "${str}"
+			[[ -f "${__BLOG_TO_FILE}" ]] && echo -en "${str}" >> "${__BLOG_TO_FILE}"
 		done
 	fi
 
