@@ -174,6 +174,7 @@ log() {
 # log_header [--prefix x --suffix y --line_width numb] "log text here"
 # or
 # log_header "log text here" [--prefix x --suffix y --line_width numb]
+# no support another text style except bold
 log_header() {
 	local str line_width prefix suffix padding_str
 	local bold_header=yes
@@ -239,7 +240,10 @@ log_title() {
 	line_width=${line_width:-${RF_LINE_WIDTH:-90}}
 	padding_str="${padding_str:-" "}"
 	title="${title:-""}"
+
 	str=` __blog_replace_tab_by_space "${str}" `
+	# replace some 'html' text style with shell color/style code
+	str=$(__blog_text_style "$str")
 	
 	ifs=${ifs:-$'\n'}
 
@@ -362,7 +366,7 @@ __blog_text_style() {
 		-e 's%<d>%\\e[2m%g' -e 's%</d>%\\e[22m%g' \
 		-e 's%<i>%\\e[3m%g' -e 's%</i>%\\e[23m%g' \
 		-e 's%<u>%\\e[4m%g' -e 's%</u>%\\e[24m%g' \
-		-e 's%<k>%\\e[5m%g' -e 's%</k>%\\e[25m%g' \
+		-e 's%<blink>%\\e[5m%g' -e 's%</blink>%\\e[25m%g' \
 		-e 's%<r>%\\e[7m%g' -e 's%</r>%\\e[27m%g' \
 		-e 's%<h>%\\e[8m%g' -e 's%</h>%\\e[28m%g' \
 		-e 's%<s>%\\e[9m%g' -e 's%</s>%\\e[29m%g' \
