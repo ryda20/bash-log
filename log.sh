@@ -139,7 +139,11 @@ log() {
 	line_width=${line_width:-${RF_LINE_WIDTH:-90}}
 	padding_str="${padding_str:-" "}"
 	header=${header:-0}
+
+	# replace tab by space
 	str=` __blog_replace_tab_by_space "${str}" `
+	# replace some 'html' text style with shell color/style code
+	str=$(__blog_text_style "$str")
 
 	# check warning, error, info switch and default to color
 	if [[ ${warning} -gt 0 ]]; then
@@ -162,7 +166,7 @@ log() {
 
 	__log_debug "prefix: $prefix, suffix: $suffix, line_width: $line_width, padding: $padding"
 	
-	__blog_repeat --count $padding --prefix "${prefix}${str}" --suffix "${suffix}" "$padding_str"
+	__blog_repeat --count $padding --prefix "${prefix}" --suffix "${suffix}" --padding_str "$padding_str" "${str}"
 }
 
 # log_header log text as header
@@ -172,7 +176,8 @@ log() {
 # log_header "log text here" [--prefix x --suffix y --line_width numb]
 log_header() {
 	local str line_width prefix suffix padding_str
-	
+	local bold_header=yes
+
 	while [[ $# -gt 0 ]]; do
 		case $1 in 
 			--header|-hr) __log_debug "got passing from log, so, skip this one";;
@@ -180,6 +185,7 @@ log_header() {
 			--prefix|-pf) shift; prefix="$1"; __log_debug "got prefix: $1";;
 			--line_width|-lw) shift; line_width="$1"; __log_debug "got line_width: $1";;
 			--padding_str|-ps) shift; padding_str="$1"; __log_debug "got padding_str: $1";;
+			--no-bold) bold_header=no; __log_debug "no bold header";;
 			*) str="$1"; __log_debug "got str: $1";;
 		esac
 		shift
@@ -189,16 +195,24 @@ log_header() {
 	suffix="${suffix:-"#"}"
 	line_width=${line_width:-${RF_LINE_WIDTH:-90}}
 	padding_str="${padding_str:-"="}"
+
+	# replace tab by space
 	str=` __blog_replace_tab_by_space "${str}" `
-	
+	# make header bold as default -> line_width must be change too (+10)
+	if [[ "$bold_header" == "yes" ]]; then
+		str="\e[1m$str\e[0m"
+		line_width=$(( $line_width + 10 ))
+	fi
+
 	__blog_random_color_gen
 
+	
 	str="${prefix} ${str} ${prefix}" # append 2 prefix to str, look like ### header ###
 	local padding=$(( line_width - ${#str} - ${#suffix} ))
 	
 	__log_debug "prefix: $prefix, suffix: $suffix, line_width: $line_width, padding: $padding"
 
-	__blog_repeat --count ${padding} --prefix "${str}" --suffix "${suffix}" "${padding_str}"
+	__blog_repeat --count ${padding} --prefix "${str}" --suffix "${suffix}" --padding_str "${padding_str}" ""
 }
 
 # log_title create a log have title and content
@@ -245,7 +259,7 @@ log_title() {
 		# __log_debug "line len: ${#line}, padding: ${padding}"
 		
 		[[ $padding -lt 1 ]] && padding=0
-		__blog_repeat --count ${padding} --prefix "${prefix}${line}" --suffix "${suffix}" "${padding_str}"
+		__blog_repeat --count ${padding} --prefix "${prefix}" --suffix "${suffix}" --padding_str "${padding_str}" ${line}
 	done
 	log_end --line_width ${line_width}
 	IFS="$saveIFS"
@@ -268,7 +282,8 @@ log_end() {
 	suffix="${suffix:-"#"}"
 	padding_str="${padding_str:-"="}"
 	local padding=$(( line_width - ${#prefix} - ${#suffix} )) # -2 because i want to keep line_width but i was added 2 #
-	__blog_repeat --count ${padding} --prefix "${prefix}" --suffix "${suffix}" "${padding_str}"
+	local str="" # not have any str to print out
+	__blog_repeat --count ${padding} --prefix "${prefix}" --suffix "${suffix}" --padding_str "${padding_str}" ${str}
 	# echo # make new line
 }
 
@@ -322,17 +337,50 @@ __blog_replace_tab_by_space() {
 	echo -e "${1}" | sed 's/\t/    /g'
 }
 
-# Repeat given char N times using shell function
-# __blog_repeat "repeat str" [--prefix x --suffix y --count numb]
-# or
-# __blog_repeat [--prefix x --suffix y --count numb] "repeat str"
+# replace <b></b> with bold code \e[1m \e[21m
+# replace <i></i> with italic code \e[3m \e[23m
+# replace <u></u> with underline code \e[4m \e[24m
+# replace <s></s> with strikethrough code \e[9m \e[29m
+# https://misc.flogisoft.com/bash/tip_colors_and_formatting
+# 0 - Normal Style
+# 1 - Bold
+# 2 - Dim
+# 3 - Italic
+# 4 - Underlined
+# 5 - Blinking
+# 7 - Reverse
+# 8 - Invisible - hidden
+# Note:
+# 2 is for dim color, not disabling bold. 
+# 22 is for disabling dim and bold. 
+# Disabling bold with 21 is not widely supported (e.g. no support on macOS)
+
+__blog_text_style() {
+	local str="$1"
+	str=$( echo $str | sed \
+		-e 's%<b>%\\e[1m%g' -e 's%</b>%\\e[22m%g' \
+		-e 's%<d>%\\e[2m%g' -e 's%</d>%\\e[22m%g' \
+		-e 's%<i>%\\e[3m%g' -e 's%</i>%\\e[23m%g' \
+		-e 's%<u>%\\e[4m%g' -e 's%</u>%\\e[24m%g' \
+		-e 's%<k>%\\e[5m%g' -e 's%</k>%\\e[25m%g' \
+		-e 's%<r>%\\e[7m%g' -e 's%</r>%\\e[27m%g' \
+		-e 's%<h>%\\e[8m%g' -e 's%</h>%\\e[28m%g' \
+		-e 's%<s>%\\e[9m%g' -e 's%</s>%\\e[29m%g' \
+	)
+	echo "$str"
+}
+
+
+# __blog_repeat will printout prefix, str, suffix and padding_str (fill out full linewidth)
+# it repeat padding_str char N times until come to linewidth value
 __blog_repeat() {
-	local str count prefix suffix
+	local str padding_str count prefix suffix
 	while [[ $# -gt 0 ]]; do
 		case $1 in 
 		--suffix) shift; suffix="$1"; __log_debug "got suffix: $1";;
 		--prefix) shift; prefix="$1"; __log_debug "got prefix: $1";;
 		--count) shift; count="$1"; __log_debug "got count: $1";;
+		--padding_str) shift; padding_str="$1"; __log_debug "got padding str: \"$1\"";;
 		*) str="$1"; __log_debug "got str: $1";;
 		esac
 		shift
@@ -341,7 +389,47 @@ __blog_repeat() {
 	count=${count:-${RF_LINE_WIDTH:-90}}
 	prefix="${prefix:-}"
 	suffix="${suffix:-}"
+	
+	local timenow=""
+	[[ $__BLOG_TIME -gt 0 ]] && timenow="[`date +"%Y-%m-%d %T"`] "
 
+	# log prefix to stdout and file if any
+	echo -en "${__BLOG_COLORS_RANDOM}${timenow}${prefix}${str}"
+	[[ -f "${__BLOG_TO_FILE}" ]] && echo -en "${timenow}${prefix}${str}" >> "${__BLOG_TO_FILE}"
+	
+	# check and printout padding_str
+	if [[ $count -gt 0 ]]; then
+		# range start at 1
+		local range=$( seq 1 ${count} )
+		for i in $range; do
+			echo -en "${padding_str}"
+			[[ -f "${__BLOG_TO_FILE}" ]] && echo -en "${padding_str}" >> "${__BLOG_TO_FILE}"
+		done
+	fi
+
+	# log suffix to stdout and file if any
+	# dont use -n to make a new line
+	echo -e "${suffix}${__NOCOLOR}"
+	[[ -f "${__BLOG_TO_FILE}" ]] && echo -e "${suffix}" >> "${__BLOG_TO_FILE}"
+}
+
+__blog_repeat2() {
+	local padding_str count prefix suffix
+	while [[ $# -gt 0 ]]; do
+		case $1 in 
+		--suffix) shift; suffix="$1"; __log_debug "got suffix: $1";;
+		--prefix) shift; prefix="$1"; __log_debug "got prefix: $1";;
+		--count) shift; count="$1"; __log_debug "got count: $1";;
+		*) padding_str="$1"; __log_debug "got str: $1";;
+		esac
+		shift
+	done
+	# check and default values
+	count=${count:-${RF_LINE_WIDTH:-90}}
+	prefix="${prefix:-}"
+	suffix="${suffix:-}"
+
+	
 	local timenow=""
 	[[ $__BLOG_TIME -gt 0 ]] && timenow="[`date +"%Y-%m-%d %T"`] "
 
@@ -354,8 +442,8 @@ __blog_repeat() {
 		# range start at 1
 		local range=$( seq 1 ${count} )
 		for i in $range; do
-			echo -en "${str}"
-			[[ -f "${__BLOG_TO_FILE}" ]] && echo -en "${str}" >> "${__BLOG_TO_FILE}"
+			echo -en "${padding_str}"
+			[[ -f "${__BLOG_TO_FILE}" ]] && echo -en "${padding_str}" >> "${__BLOG_TO_FILE}"
 		done
 	fi
 
