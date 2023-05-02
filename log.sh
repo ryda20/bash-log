@@ -36,6 +36,9 @@ __BLOG_INFO=$__GREEN
 __BLOG_WARNING=$__YELLOW
 __BLOG_DEBUG=$__MAGENTA
 
+# replace tab with 2 spaces, different to 2, will replace with 4 spaces
+__BLOG_REPLACE_TAB_BY_SPACE=2
+
 # the file path to save log
 __BLOG_TO_FILE=""
 
@@ -63,9 +66,13 @@ __log_debug() {
 	fi
 }
 
-
 __blog_replace_tab_by_space() {
-	echo -e "${1}" | sed 's/\t/    /g'
+	if [[ "$__BLOG_REPLACE_TAB_BY_SPACE" == "2" ]]; then
+		echo -e "${1}" | sed 's/\t/  /g'
+	else
+		# replace tab with 4 spaces
+		echo -e "${1}" | sed 's/\t/    /g'
+	fi
 }
 
 # replace <b></b> with bold code \e[1m \e[21m
