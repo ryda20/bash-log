@@ -195,7 +195,7 @@ log() {
 			shift; padding_str="$1"; __log_debug "got padding_str: $1";;
 		*)
 			# append all other parameter to arrstr
-			str="$str, $1"; __log_debug "got str: $1";;
+			str="$str $1"; __log_debug "got str: $1";;
 		esac
 		shift
 	done
