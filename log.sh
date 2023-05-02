@@ -162,8 +162,7 @@ __blog_text_match_count() {
 #		<switch> --debug: show a debug message
 log() {
 	local args=("$@")
-	local arrstr=()
-	local prefix suffix line_width padding_str
+	local str prefix suffix line_width padding_str
 	local is_header is_title title_str is_step is_end is_empty
 	local warning=0 error=0 info=0 debug=0
 	while [[ $# -gt 0 ]]; do
@@ -196,7 +195,7 @@ log() {
 			shift; padding_str="$1"; __log_debug "got padding_str: $1";;
 		*)
 			# append all other parameter to arrstr
-			arrstr=(${arrstr[@]} "$1"); __log_debug "got str: $1";;
+			str="$str, $1"; __log_debug "got str: $1";;
 		esac
 		shift
 	done
@@ -225,8 +224,9 @@ log() {
 	padding_str="${padding_str:-" "}"
 	header=${header:-0}
 
+	
 	# replace tab by space
-	local str=`__blog_replace_tab_by_space "${arrstr[@]}"`
+	str=`__blog_replace_tab_by_space "$str"`
 	# replace some 'html' text style with shell color/style code
 	str=$(__blog_text_style "$str")
 
