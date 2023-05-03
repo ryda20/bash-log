@@ -41,14 +41,6 @@ __BLOG_REPLACE_TAB_BY_SPACE=2
 
 # the file path to save log
 __BLOG_TO_FILE=""
-
-__BLOG_TIME=1
-
-# log_timme: enable date-time prefix or not
-log_time() {
-	__BLOG_TIME=${1:-1}
-}
-# log_to set log file path
 log_to() {
 	__BLOG_TO_FILE=${1:-""}
 	[[ -z "$__BLOG_TO_FILE" ]] && return
@@ -57,6 +49,25 @@ log_to() {
 	mkdir -p "$dir"
 	touch "$__BLOG_TO_FILE"
 }
+
+# log with time as prefix
+__BLOG_TIME=1
+__BLOG_TIME_SKIP=0 # temporary skip time prefix, skip when -gt 0
+log_time() {
+	__BLOG_TIME=${1:-1}
+}
+
+# log with caller function name as prefx. 1 Enable, 0 Disable
+__BLOG_CALLER_FN_NAME=0
+__BLOG_CALLER_FN_DEPTH=2
+__BLOG_CALLER_FN_SKIP=0 # temporary skip caller
+log_fn_name() {
+	local callerEnable="${1:0}" # default to disable
+	local callerDepth="${2:-1}" # default to 1
+	__BLOG_CALLER_FN_NAME=$callerEnable
+	__BLOG_CALLER_FN_DEPTH=$callerDepth
+}
+
 
 # __log_debug internal debug log
 __log_debug() {
@@ -109,6 +120,13 @@ __blog_text_style() {
 	echo "$str"
 }
 
+
+__blog_number_of_match() {
+	local str="$1"
+	local replace="$2"
+	local match=$(echo "$str" | grep -o "$replace" | wc -l)
+	echo ${match:-0}
+}
 __blog_text_match_count() {
 	local str="$1"
 	local count=0
@@ -119,32 +137,39 @@ __blog_text_match_count() {
 	# that is reason, we use wc with -l (line count) option after 
 	#	grep -o (print out match only, each match per line)
 	#
-	local countx=0
-	countx=$(echo "$str" | grep -o "<b>" | wc -l)
-	count=$(( $count + $countx ))
-	countx=$(echo "$str" | grep -o "<d>" | wc -l)
-	count=$(( $count + $countx ))
-	countx=$(echo "$str" | grep -o "<i>" | wc -l)
-	count=$(( $count + $countx ))
-	countx=$(echo "$str" | grep -o "<u>" | wc -l)
-	count=$(( $count + $countx ))
-	countx=$(echo "$str" | grep -o "<blink>" | wc -l)
-	count=$(( $count + $countx ))
-	countx=$(echo "$str" | grep -o "<r>" | wc -l)
-	count=$(( $count + $countx ))
-	countx=$(echo "$str" | grep -o "<h>" | wc -l)
-	count=$(( $count + $countx ))
-	countx=$(echo "$str" | grep -o "<s>" | wc -l)
-	count=$(( $count + $countx ))
-	# count=$(( $count + $(echo "$str" | grep -o "<b>" | wc -l) ))
-	# count=$(( $count + $(echo "$str" | grep -o "<d>" | wc -l) ))
-	# count=$(( $count + $(echo "$str" | grep -o "<i>" | wc -l) ))
-	# count=$(( $count + $(echo "$str" | grep -o "<u>" | wc -l) ))
-	# count=$(( $count + $(echo "$str" | grep -o "<blink>" | wc -l) ))
-	# count=$(( $count + $(echo "$str" | grep -o "<r>" | wc -l) ))
-	# count=$(( $count + $(echo "$str" | grep -o "<h>" | wc -l) ))
-	# count=$(( $count + $(echo "$str" | grep -o "<s>" | wc -l) ))
-
+	# local countx=0
+	# countx=$(echo "$str" | grep -o "<b>" | wc -l)
+	# count=$(( $count + $countx ))
+	# countx=$(echo "$str" | grep -o "<d>" | wc -l)
+	# count=$(( $count + $countx ))
+	# countx=$(echo "$str" | grep -o "<i>" | wc -l)
+	# count=$(( $count + $countx ))
+	# countx=$(echo "$str" | grep -o "<u>" | wc -l)
+	# count=$(( $count + $countx ))
+	# countx=$(echo "$str" | grep -o "<blink>" | wc -l)
+	# count=$(( $count + $countx ))
+	# countx=$(echo "$str" | grep -o "<r>" | wc -l)
+	# count=$(( $count + $countx ))
+	# countx=$(echo "$str" | grep -o "<h>" | wc -l)
+	# count=$(( $count + $countx ))
+	# countx=$(echo "$str" | grep -o "<s>" | wc -l)
+	# count=$(( $count + $countx ))
+	count=$(( $count + $(echo "$str" | grep -o "<b>" | wc -l) ))
+	count=$(( $count + $(echo "$str" | grep -o "<d>" | wc -l) ))
+	count=$(( $count + $(echo "$str" | grep -o "<i>" | wc -l) ))
+	count=$(( $count + $(echo "$str" | grep -o "<u>" | wc -l) ))
+	count=$(( $count + $(echo "$str" | grep -o "<blink>" | wc -l) ))
+	count=$(( $count + $(echo "$str" | grep -o "<r>" | wc -l) ))
+	count=$(( $count + $(echo "$str" | grep -o "<h>" | wc -l) ))
+	count=$(( $count + $(echo "$str" | grep -o "<s>" | wc -l) ))
+	# count=$(( $count + __blog_number_of_match "$str" "<b>" ))
+	# count=$(( $count + __blog_number_of_match "$str" "<d>" ))
+	# count=$(( $count + __blog_number_of_match "$str" "<i>" ))
+	# count=$(( $count + __blog_number_of_match "$str" "<u>" ))
+	# count=$(( $count + __blog_number_of_match "$str" "<blink>" ))
+	# count=$(( $count + __blog_number_of_match "$str" "<r>" ))
+	# count=$(( $count + __blog_number_of_match "$str" "<h>" ))
+	# count=$(( $count + __blog_number_of_match "$str" "<s>" ))
 	echo "$count"
 }
 
@@ -169,29 +194,45 @@ __blog_text_match_count() {
 #		<switch> --debug: show a debug message
 log() {
 	local args=("$@")
-	local str prefix suffix line_width padding_str
-	local is_header is_title title_str is_step is_end is_empty
-	local warning=0 error=0 info=0 debug=0
+	local str=""
+	local prefix="# "
+	local suffix=""
+	local line_width=${RF_LINE_WIDTH:-90}
+	local padding_str=" "
+	#
 	while [[ $# -gt 0 ]]; do
 		case $1 in 
 		--warning)
-			warning=1;;
+			__BLOG_COLORS_RANDOM=$__BLOG_WARNING
+			prefix="${prefix}[WARN] "
+			;;
 		--error)
-			error=1;;
+			__BLOG_COLORS_RANDOM=$__BLOG_ERROR
+			prefix="${prefix}[ERROR] "
+			;;
 		--info)
-			info=1;;
+			__BLOG_COLORS_RANDOM=$__BLOG_INFO
+			prefix="${prefix}[INFO] "
+			;;
 		--debug)
-			debug=1;;
+			__BLOG_COLORS_RANDOM=$__BLOG_DEBUG
+			prefix="${prefix}[DEBUG] "
+			;;
 		--end|-ed)
-			is_end=1; __log_debug "got end switch"; break;;
+			log_end "${args[@]}"
+			return;;
 		--empty|-e)
-			is_empty=1; __log_debug "got empty switch"; break;;
+			log_empty "${args[@]}"
+			return;;
 		--step|-s)
-			is_step=1; __log_debug "got step switch"; break;;
+			log_step "${args[@]}"
+			return;;
 		--header|-h)
-			is_header=1; __log_debug "got header switch"; break;;
+			log_header "${args[@]}"
+			return;;
 		--title|-t)
-			is_title=1; title_str="$2"; __log_debug "got title switch with value: $2"; shift; break;;
+			log_title "${args[@]}"
+			return;;
 		--suffix|-sf)
 			shift; suffix="$1"; __log_debug "got suffix: $1";;
 		--prefix|-pf)
@@ -200,6 +241,12 @@ log() {
 			shift; line_width="$1"; __log_debug "got line_width: $1";;
 		--padding_str|-p)
 			shift; padding_str="$1"; __log_debug "got padding_str: $1";;
+		--depth|-d)
+			shift; __BLOG_CALLER_FN_DEPTH=$1; __log_debug "got caller depth: $1";;
+		--skip-caller-name)
+			__BLOG_CALLER_FN_SKIP=1; __log_debug "got --skip-caller-name option";;
+		--skip-time)
+			__BLOG_TIME_SKIP=1; __log_debug "got --skip-time option";;
 		*)
 			# append all other parameter to arrstr
 			str="$str $1"; __log_debug "got str: $1";;
@@ -207,52 +254,10 @@ log() {
 		shift
 	done
 
-	if [[ $is_step -gt 0 ]]; then # check if input set --step
-		log_step "${args[@]}"
-		return
-	elif [[ $is_title -gt 0 ]]; then # check if input set --title
-		log_title "${args[@]}"
-		return
-	elif [[ $is_header -gt 0 ]]; then # check if input set --header
-		log_header "${args[@]}"
-		return
-	elif [[ $is_empty -gt 0 ]]; then # check if --empty, -emp
-		log_empty "${args[@]}"
-		return
-	elif [[ $is_end -gt 0 ]]; then # check if --end, -e
-		log_end "${args[@]}"
-		return
-	fi
-	
-	# check and set default values
-	prefix=${prefix:-"# "}
-	suffix=${suffix:-""}
-	line_width=${line_width:-${RF_LINE_WIDTH:-90}}
-	padding_str="${padding_str:-" "}"
-	header=${header:-0}
-
-	
 	# replace tab by space
 	str=`__blog_replace_tab_by_space "$str"`
 	# replace some 'html' text style with shell color/style code
 	str=$(__blog_text_style "$str")
-
-	# check warning, error, info switch and default to color
-	if [[ ${warning} -gt 0 ]]; then
-		__BLOG_COLORS_RANDOM=$__BLOG_WARNING
-		prefix="[WARN] ${prefix}"
-	elif [[ ${error} -gt 0 ]]; then	
-		__BLOG_COLORS_RANDOM=$__BLOG_ERROR
-		prefix="[ERROR] ${prefix}"
-	elif [[ ${info} -gt 0 ]]; then
-		__BLOG_COLORS_RANDOM=$__BLOG_INFO
-		prefix="[INFO] ${prefix}"
-	elif [[ ${debug} -gt 0 ]]; then
-		__BLOG_COLORS_RANDOM=$__BLOG_DEBUG
-		prefix="[DEBUG] ${prefix}"
-	#else
-		#__blog_random_color_gen
-	fi
 
 	local padding=$(( line_width - ${#str} - ${#prefix} - ${#suffix} ))
 
@@ -273,7 +278,8 @@ log_header() {
 
 	while [[ $# -gt 0 ]]; do
 		case $1 in 
-			--header|-hr) __log_debug "got passing from log, so, skip this one";;
+			# must to check --header | -h because we pass all agruments from caller
+			--header|-h) __log_debug "got passing from log, so, skip this one";;
 			--suffix|-sf) shift; suffix="$1"; __log_debug "got suffix: $1";;
 			--prefix|-pf) shift; prefix="$1"; __log_debug "got prefix: $1";;
 			--line_width|-lw) shift; line_width="$1"; __log_debug "got line_width: $1";;
@@ -391,6 +397,8 @@ log_end() {
 }
 
 log_empty(){
+	__BLOG_TIME_SKIP=1
+	__BLOG_CALLER_FN_SKIP=1
 	log_end --prefix " " --suffix " " --padding_str " "
 }
 
@@ -456,11 +464,19 @@ __blog_repeat() {
 	suffix="${suffix:-}"
 	
 	local timenow=""
-	[[ $__BLOG_TIME -gt 0 ]] && timenow="[`date +"%Y-%m-%d %T"`] "
+	[[ $__BLOG_TIME -gt 0 && $__BLOG_TIME_SKIP -eq 0 ]] && timenow="[`date +"%Y-%m-%d %T"`] "
+	__BLOG_TIME_SKIP=0 # reset
+
+	local callerName=""
+	if [[ $__BLOG_CALLER_FN_NAME -gt 0 && $__BLOG_CALLER_FN_SKIP -eq 0 ]]; then
+		local caller=($(caller $__BLOG_CALLER_FN_DEPTH))
+		callerName="[${caller[1]}] "
+	fi
+	__BLOG_CALLER_FN_SKIP=0 # reset
 
 	# log prefix to stdout and file if any
-	echo -en "${__BLOG_COLORS_RANDOM}${timenow}${prefix}${str}"
-	[[ -f "${__BLOG_TO_FILE}" ]] && echo -en "${timenow}${prefix}${str}" >> "${__BLOG_TO_FILE}"
+	echo -en "${__BLOG_COLORS_RANDOM}${timenow}${prefix}${callerName}${str}"
+	[[ -f "${__BLOG_TO_FILE}" ]] && echo -en "${timenow}${prefix}${callerName}${str}" >> "${__BLOG_TO_FILE}"
 	
 	# check and printout padding_str
 	if [[ $count -gt 0 ]]; then
@@ -478,45 +494,6 @@ __blog_repeat() {
 	[[ -f "${__BLOG_TO_FILE}" ]] && echo -e "${suffix}" >> "${__BLOG_TO_FILE}"
 }
 
-__blog_repeat2() {
-	local padding_str count prefix suffix
-	while [[ $# -gt 0 ]]; do
-		case $1 in 
-		--suffix) shift; suffix="$1"; __log_debug "got suffix: $1";;
-		--prefix) shift; prefix="$1"; __log_debug "got prefix: $1";;
-		--count) shift; count="$1"; __log_debug "got count: $1";;
-		*) padding_str="$1"; __log_debug "got str: $1";;
-		esac
-		shift
-	done
-	# check and default values
-	count=${count:-${RF_LINE_WIDTH:-90}}
-	prefix="${prefix:-}"
-	suffix="${suffix:-}"
-
-	
-	local timenow=""
-	[[ $__BLOG_TIME -gt 0 ]] && timenow="[`date +"%Y-%m-%d %T"`] "
-
-	# log prefix to stdout and file if any
-	echo -en "${__BLOG_COLORS_RANDOM}${timenow}${prefix}"
-	[[ -f "${__BLOG_TO_FILE}" ]] && echo -en "${timenow}${prefix}" >> "${__BLOG_TO_FILE}"
-	
-	# log content to stdout and file if any
-	if [[ $count -gt 0 ]]; then
-		# range start at 1
-		local range=$( seq 1 ${count} )
-		for i in $range; do
-			echo -en "${padding_str}"
-			[[ -f "${__BLOG_TO_FILE}" ]] && echo -en "${padding_str}" >> "${__BLOG_TO_FILE}"
-		done
-	fi
-
-	# log suffix to stdout and file if any
-	# dont use -n to make a new line
-	echo -e "${suffix}${__NOCOLOR}"
-	[[ -f "${__BLOG_TO_FILE}" ]] && echo -e "${suffix}" >> "${__BLOG_TO_FILE}"
-}
 
 __blog_random_color_gen() {
 	# generate random color, RANDOM is a bash shell value

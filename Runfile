@@ -79,7 +79,7 @@ tlog() {
 	log_empty
 	log "this is header from log fn" --header
 	log "this is header without bold" --header --no-bold
-	log "this is header from log fn - again. using switch -hr" -hr
+	log "this is header from log fn - again. using switch -h" -h
 	log --empty
 	log --title "i am a title" "i am a content of title log, calling from log fn"
 	log -e
@@ -154,6 +154,55 @@ tlogtextstyle() {
 	log "this is hidden <h>hidden</h> text"
 	log "this is <s>strikethrough</s> text"
 
+}
+
+func1() {
+	log "this is caller test: $@"
+}
+func2() {
+	func1 "$@"
+}
+func3() {
+	func2 "$@"
+}
+
+tlogcaller() {
+	log_fn_name 1 0
+	func3 "0"
+	log_fn_name 1 1
+	func3 "1"
+	log_fn_name 1 2
+	func3 "2"
+	log_fn_name 1 3
+	func3 "3"
+	log_fn_name 1 4
+	func3 "4"
+	
+	# another way using --depth
+	#
+	log_fn_name 1 2
+	log --empty
+	func1 "call from func1 with --depth 0" --depth 0
+	func1 "call from func1 with --depth 1" --depth 1
+	func1 "call from func1 with --depth 2" --depth 2
+	func1 "call from func1 with --depth 3" --depth 3
+	func1 "call from func1 with --depth 4" --depth 4
+	#
+	log_fn_name 1 2
+	log --empty
+	func2 "call from func2 with --depth 0" --depth 0
+	func2 "call from func2 with --depth 1" --depth 1
+	func2 "call from func2 with --depth 2" --depth 2
+	func2 "call from func2 with --depth 3" --depth 3
+	func2 "call from func2 with --depth 4" --depth 4
+	#
+	log_fn_name 1 2
+	log --empty
+	func3 "call from func3 with --depth 0" --depth 0
+	func3 "call from func3 with --depth 1" --depth 1
+	func3 "call from func3 with --depth 2" --depth 2
+	func3 "call from func3 with --depth 3" --depth 3
+	func3 "call from func3 with --depth 4" --depth 4
 }
 ##endregion USER =================================================
 __start_app "$@" # MUST_END_OF_FILE
