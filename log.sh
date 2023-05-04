@@ -68,12 +68,31 @@ log_fn_name() {
 	__BLOG_CALLER_FN_DEPTH=$callerDepth
 }
 
-
+logd() {
+	log_debug "$@"
+}
+__log_debug() {
+	log_debug "$@"
+}
 # log_debug internal debug log
 log_debug() {
+	local force=""
+	local args=()
+	while [[ $# -gt 0 ]]; do
+		case $1 in
+			--debug|--dev)
+				force="yes" # enable debug log, this variable from bashlog package
+				;;
+			*)
+				# save $1 to args array
+				args=("${args[@]}" "$1")
+		esac
+		shift
+	done 
+
 	# show log only when have log_debug.txt file or __BLOG_INTERNAL_DEBUG env is greater than 0
-	if [[ -f "debug.txt" ]] || [[ $__BLOG_INTERNAL_DEBUG -gt 0 ]]; then
-		log --debug "$@"
+	if [[ -f "debug.txt" || $__BLOG_INTERNAL_DEBUG -gt 0 || "$force" == "yes" ]]; then
+		log --debug "${args[@]}"
 	fi
 }
 
