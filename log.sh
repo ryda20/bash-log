@@ -93,7 +93,7 @@ log_debug() {
 
 	# show log only when have log_debug.txt file or __BLOG_DEBUG_ENABLED env is greater than 0
 	if [[ -f "debug.txt" || $__BLOG_DEBUG_ENABLED -gt 0 || "$force" == "yes" ]]; then
-		log --debug "$@"
+		log --debug "${args[@]}"
 	fi
 }
 
