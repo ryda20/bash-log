@@ -29,7 +29,8 @@ __BLOG_COLORS_INDEX=5
 __BLOG_COLORS_INDEX_PRE=0
 __BLOG_COLORS_RANDOM=${__BLOG_COLORS[$__BLOG_COLORS_INDEX]}  # default color is blue
 
-__BLOG_INTERNAL_DEBUG=0
+# export for another use
+export __BLOG_DEBUG_ENABLED=0
 
 __BLOG_ERROR=$__RED
 __BLOG_INFO=$__GREEN
@@ -76,23 +77,23 @@ __log_debug() {
 }
 # log_debug internal debug log
 log_debug() {
-	local force=""
-	local args=()
-	while [[ $# -gt 0 ]]; do
-		case $1 in
-			--debug|--dev)
-				force="yes" # enable debug log, this variable from bashlog package
-				;;
-			*)
-				# save $1 to args array
-				args=("${args[@]}" "$1")
-		esac
-		shift
-	done 
+	# local force=""
+	# local args=()
+	# while [[ $# -gt 0 ]]; do
+	# 	case $1 in
+	# 		--debug|--dev)
+	# 			force="yes" # enable debug log, this variable from bashlog package
+	# 			;;
+	# 		*)
+	# 			# save $1 to args array
+	# 			args=("${args[@]}" "$1")
+	# 	esac
+	# 	shift
+	# done 
 
-	# show log only when have log_debug.txt file or __BLOG_INTERNAL_DEBUG env is greater than 0
-	if [[ -f "debug.txt" || $__BLOG_INTERNAL_DEBUG -gt 0 || "$force" == "yes" ]]; then
-		log --debug "${args[@]}"
+	# show log only when have log_debug.txt file or __BLOG_DEBUG_ENABLED env is greater than 0
+	if [[ -f "debug.txt" || $__BLOG_DEBUG_ENABLED -gt 0 ]]; then
+		log --debug "$@"
 	fi
 }
 
