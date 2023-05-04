@@ -69,9 +69,9 @@ log_fn_name() {
 }
 
 
-# __log_debug internal debug log
-__log_debug() {
-	# show log only when have __log_debug.txt file or __BLOG_INTERNAL_DEBUG env is greater than 0
+# log_debug internal debug log
+log_debug() {
+	# show log only when have log_debug.txt file or __BLOG_INTERNAL_DEBUG env is greater than 0
 	if [[ -f "debug.txt" ]] || [[ $__BLOG_INTERNAL_DEBUG -gt 0 ]]; then
 		log --debug "$@"
 	fi
@@ -235,22 +235,22 @@ log() {
 			log_title "${args[@]}"
 			return;;
 		--suffix|-sf)
-			shift; suffix="$1"; __log_debug "got suffix: $1";;
+			shift; suffix="$1"; log_debug "got suffix: $1";;
 		--prefix|-pf)
-			shift; prefix="$1"; __log_debug "got prefix: $1";;
+			shift; prefix="$1"; log_debug "got prefix: $1";;
 		--line_width|-lw)
-			shift; line_width="$1"; __log_debug "got line_width: $1";;
+			shift; line_width="$1"; log_debug "got line_width: $1";;
 		--padding_str|-p)
-			shift; padding_str="$1"; __log_debug "got padding_str: $1";;
+			shift; padding_str="$1"; log_debug "got padding_str: $1";;
 		--depth|-d)
-			shift; __BLOG_CALLER_FN_DEPTH=$1; __log_debug "got caller depth: $1";;
+			shift; __BLOG_CALLER_FN_DEPTH=$1; log_debug "got caller depth: $1";;
 		--skip-caller-name)
-			__BLOG_CALLER_FN_SKIP=1; __log_debug "got --skip-caller-name option";;
+			__BLOG_CALLER_FN_SKIP=1; log_debug "got --skip-caller-name option";;
 		--skip-time)
-			__BLOG_TIME_SKIP=1; __log_debug "got --skip-time option";;
+			__BLOG_TIME_SKIP=1; log_debug "got --skip-time option";;
 		*)
 			# append all other parameter to arrstr
-			str="$str $1"; __log_debug "got str: $1";;
+			str="$str $1"; log_debug "got str: $1";;
 		esac
 		shift
 	done
@@ -262,7 +262,7 @@ log() {
 
 	local padding=$(( line_width - ${#str} - ${#prefix} - ${#suffix} ))
 
-	__log_debug "prefix: $prefix, suffix: $suffix, line_width: $line_width, padding: $padding"
+	log_debug "prefix: $prefix, suffix: $suffix, line_width: $line_width, padding: $padding"
 	
 	__blog_repeat --count $padding --prefix "${prefix}" --suffix "${suffix}" --padding_str "$padding_str" "${str}"
 
@@ -283,13 +283,13 @@ log_header() {
 	while [[ $# -gt 0 ]]; do
 		case $1 in 
 			# must to check --header | -h because we pass all agruments from caller
-			--header|-h) __log_debug "got passing from log, so, skip this one";;
-			--suffix|-sf) shift; suffix="$1"; __log_debug "got suffix: $1";;
-			--prefix|-pf) shift; prefix="$1"; __log_debug "got prefix: $1";;
-			--line_width|-lw) shift; line_width="$1"; __log_debug "got line_width: $1";;
-			--padding_str|-ps) shift; padding_str="$1"; __log_debug "got padding_str: $1";;
-			--no-bold) bold_header=no; __log_debug "no bold header";;
-			*) str="$1"; __log_debug "got str: $1";;
+			--header|-h) log_debug "got passing from log, so, skip this one";;
+			--suffix|-sf) shift; suffix="$1"; log_debug "got suffix: $1";;
+			--prefix|-pf) shift; prefix="$1"; log_debug "got prefix: $1";;
+			--line_width|-lw) shift; line_width="$1"; log_debug "got line_width: $1";;
+			--padding_str|-ps) shift; padding_str="$1"; log_debug "got padding_str: $1";;
+			--no-bold) bold_header=no; log_debug "no bold header";;
+			*) str="$1"; log_debug "got str: $1";;
 		esac
 		shift
 	done
@@ -313,7 +313,7 @@ log_header() {
 	str="${prefix} ${str} ${prefix}" # append 2 prefix to str, look like ### header ###
 	local padding=$(( line_width - ${#str} - ${#suffix} ))
 	
-	__log_debug "prefix: $prefix, suffix: $suffix, line_width: $line_width, padding: $padding"
+	log_debug "prefix: $prefix, suffix: $suffix, line_width: $line_width, padding: $padding"
 
 	__blog_repeat --count ${padding} --prefix "${str}" --suffix "${suffix}" --padding_str "${padding_str}" ""
 }
@@ -326,13 +326,13 @@ log_title() {
 	local title str line_width prefix suffix padding_str ifs
 	while [[ $# -gt 0 ]]; do
 		case $1 in 
-		--title|-t) shift; title="$1"; __log_debug "got title: $1";;
-		--suffix|-sf) shift; suffix="$1"; __log_debug "got suffix: $1";;
-		--prefix|-pf) shift; prefix="$1"; __log_debug "got prefix: $1";;
-		--line_width|-lw) shift; line_width="$1"; __log_debug "got line_width: $1";;
-		--padding_str|-ps) shift; padding_str="$1"; __log_debug "got padding_str: $1";;
-		--ifs) shift; ifs="$1"; __log_debug "got ifs: $1";;
-		*) str="$1"; __log_debug "got str: $1";;
+		--title|-t) shift; title="$1"; log_debug "got title: $1";;
+		--suffix|-sf) shift; suffix="$1"; log_debug "got suffix: $1";;
+		--prefix|-pf) shift; prefix="$1"; log_debug "got prefix: $1";;
+		--line_width|-lw) shift; line_width="$1"; log_debug "got line_width: $1";;
+		--padding_str|-ps) shift; padding_str="$1"; log_debug "got padding_str: $1";;
+		--ifs) shift; ifs="$1"; log_debug "got ifs: $1";;
+		*) str="$1"; log_debug "got str: $1";;
 		esac
 		shift
 	done
@@ -369,7 +369,7 @@ log_title() {
 		#
 		padding=$(( $line_width - ${#line} - ${#prefix} - ${#suffix} + $match_count * 11 ))
 		
-		__log_debug "line_width: ${line_width}, line_len: ${#line}, padding: ${padding}"
+		log_debug "line_width: ${line_width}, line_len: ${#line}, padding: ${padding}"
 		
 		[[ $padding -lt 1 ]] && padding=0
 		__blog_repeat --count ${padding} --prefix "${prefix}" --suffix "${suffix}" --padding_str "${padding_str}" ${line}
@@ -383,10 +383,10 @@ log_end() {
 	local line_width prefix suffix padding_str
 	while [[ $# -gt 0 ]]; do
 		case $1 in 
-		--suffix|-sf) shift; suffix="$1"; __log_debug "got suffix: $1";;
-		--prefix|-pf) shift; prefix="$1"; __log_debug "got prefix: $1";;
-		--line_width|-lw) shift; line_width="$1"; __log_debug "got line_width: $1";;
-		--padding_str|-ps) shift; padding_str="$1"; __log_debug "got padding_str: $1";;
+		--suffix|-sf) shift; suffix="$1"; log_debug "got suffix: $1";;
+		--prefix|-pf) shift; prefix="$1"; log_debug "got prefix: $1";;
+		--line_width|-lw) shift; line_width="$1"; log_debug "got line_width: $1";;
+		--padding_str|-ps) shift; padding_str="$1"; log_debug "got padding_str: $1";;
 		esac
 		shift
 	done
@@ -454,11 +454,11 @@ __blog_repeat() {
 	local str padding_str count prefix suffix
 	while [[ $# -gt 0 ]]; do
 		case $1 in 
-		--suffix) shift; suffix="$1"; __log_debug "got suffix: $1";;
-		--prefix) shift; prefix="$1"; __log_debug "got prefix: $1";;
-		--count) shift; count="$1"; __log_debug "got count: $1";;
-		--padding_str) shift; padding_str="$1"; __log_debug "got padding str: \"$1\"";;
-		*) str="$1"; __log_debug "got str: $1";;
+		--suffix) shift; suffix="$1"; log_debug "got suffix: $1";;
+		--prefix) shift; prefix="$1"; log_debug "got prefix: $1";;
+		--count) shift; count="$1"; log_debug "got count: $1";;
+		--padding_str) shift; padding_str="$1"; log_debug "got padding str: \"$1\"";;
+		*) str="$1"; log_debug "got str: $1";;
 		esac
 		shift
 	done
