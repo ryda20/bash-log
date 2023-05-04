@@ -199,6 +199,7 @@ log() {
 	local suffix=""
 	local line_width=${RF_LINE_WIDTH:-90}
 	local padding_str=" "
+	local previous_color=$__BLOG_COLORS_RANDOM
 	#
 	while [[ $# -gt 0 ]]; do
 		case $1 in 
@@ -264,6 +265,9 @@ log() {
 	__log_debug "prefix: $prefix, suffix: $suffix, line_width: $line_width, padding: $padding"
 	
 	__blog_repeat --count $padding --prefix "${prefix}" --suffix "${suffix}" --padding_str "$padding_str" "${str}"
+
+	# re-set log color to previous time (for case it changed in ERROR, INFO, WARNING)
+	__BLOG_COLORS_RANDOM=$previous_color
 }
 
 # log_header log text as header
@@ -492,6 +496,9 @@ __blog_repeat() {
 	# dont use -n to make a new line
 	echo -e "${suffix}${__NOCOLOR}"
 	[[ -f "${__BLOG_TO_FILE}" ]] && echo -e "${suffix}" >> "${__BLOG_TO_FILE}"
+
+	# rest __BLOG_COLORS_RANDOM
+	# __blog_random_color_gen
 }
 
 
