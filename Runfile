@@ -5,6 +5,16 @@ RF_FN_SKIP_PREFIX=""
 #import log.sh to test functions
 source log.sh
 
+testcolor() {
+	log "this is normaly"
+	log --error "this is error"
+	log "this is normally again"
+	log --info "this is info"
+	log "this is normally"
+	log --debug "this is debug"
+	log "this is normally"
+}
+
 mergetomaster() {
 	git checkout master &&
 	git merge dev &&
