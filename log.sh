@@ -73,7 +73,7 @@ log_fn_name() {
 __log_debug() {
 	# show log only when have __log_debug.txt file or __BLOG_INTERNAL_DEBUG env is greater than 0
 	if [[ -f "debug.txt" ]] || [[ $__BLOG_INTERNAL_DEBUG -gt 0 ]]; then
-		echo "${1}"
+		log --debug "$@"
 	fi
 }
 
