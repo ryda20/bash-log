@@ -223,7 +223,7 @@ log() {
 	#
 	while [[ $# -gt 0 ]]; do
 		case $1 in 
-		--warning)
+		--warning|--warn)
 			__BLOG_COLORS_RANDOM=$__BLOG_WARNING
 			prefix="${prefix}[WARN] "
 			;;
