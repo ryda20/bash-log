@@ -268,6 +268,10 @@ log() {
 			__BLOG_CALLER_FN_SKIP=1; log_debug "got --skip-caller-name option";;
 		--skip-time)
 			__BLOG_TIME_SKIP=1; log_debug "got --skip-time option";;
+		--cmd)
+			prefix="<i>\$"
+			suffix="</i>"
+			;;
 		*)
 			# append all other parameter to arrstr
 			str="$str $1"; log_debug "got str: $1";;
@@ -279,12 +283,14 @@ log() {
 	str=`__blog_replace_tab_by_space "$str"`
 	# replace some 'html' text style with shell color/style code
 	str=$(__blog_text_style "$str")
+	prefix=$(__blog_text_style "$prefix")
+	suffix=$(__blog_text_style "$suffix")
 
 	local padding=$(( line_width - ${#str} - ${#prefix} - ${#suffix} ))
 
 	log_debug "prefix: $prefix, suffix: $suffix, line_width: $line_width, padding: $padding"
 	
-	__blog_repeat --count $padding --prefix "${prefix}" --suffix "${suffix}" --padding_str "$padding_str" "${str}"
+	__blog_repeat --count $padding --prefix "${prefix} " --suffix "${suffix}" --padding_str "$padding_str" "${str}"
 
 	# re-set log color to previous time (for case it changed in ERROR, INFO, WARNING)
 	__BLOG_COLORS_RANDOM=$previous_color

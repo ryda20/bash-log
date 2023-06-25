@@ -5,6 +5,11 @@ RF_FN_SKIP_PREFIX=""
 #import log.sh to test functions
 source log.sh
 
+logcmd() {
+	log "here is normal log"
+	log --cmd "this is cmd"
+	log --cmd "docker run --rm image:tag"
+}
 testcolor() {
 	log "this is normaly"
 	log --error "this is error"
