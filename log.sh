@@ -349,7 +349,8 @@ log_header() {
 
 
 	# make header bold as default -> line_width must be change too (+11 chars)
-	if [[ "$bold_header" == "yes" ]]; then
+	# and only on linux
+	if [[ "$bold_header" == "yes" && "$(uname -a)" == *"Linux"* ]]; then
 		str="\e[1m$str\e[22m"
 		line_width=$(( $line_width + 11 ))
 	fi
