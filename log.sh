@@ -127,16 +127,20 @@ __blog_replace_tab_by_space() {
 #
 __blog_text_style() {
 	local str="$1"
-	str=$( echo $str | sed \
-		-e 's%<b>%\\e[1m%g' -e 's%</b>%\\e[22m%g' \
-		-e 's%<d>%\\e[2m%g' -e 's%</d>%\\e[22m%g' \
-		-e 's%<i>%\\e[3m%g' -e 's%</i>%\\e[23m%g' \
-		-e 's%<u>%\\e[4m%g' -e 's%</u>%\\e[24m%g' \
-		-e 's%<blink>%\\e[5m%g' -e 's%</blink>%\\e[25m%g' \
-		-e 's%<r>%\\e[7m%g' -e 's%</r>%\\e[27m%g' \
-		-e 's%<h>%\\e[8m%g' -e 's%</h>%\\e[28m%g' \
-		-e 's%<s>%\\e[9m%g' -e 's%</s>%\\e[29m%g' \
-	)
+	# note: for now, i just know this code work on Linux
+	# does not work on MacOS
+	if [[ "$(uname -a)" == *"Linux"* ]]; then
+		str=$( echo $str | sed \
+			-e 's%<b>%\\e[1m%g' -e 's%</b>%\\e[22m%g' \
+			-e 's%<d>%\\e[2m%g' -e 's%</d>%\\e[22m%g' \
+			-e 's%<i>%\\e[3m%g' -e 's%</i>%\\e[23m%g' \
+			-e 's%<u>%\\e[4m%g' -e 's%</u>%\\e[24m%g' \
+			-e 's%<blink>%\\e[5m%g' -e 's%</blink>%\\e[25m%g' \
+			-e 's%<r>%\\e[7m%g' -e 's%</r>%\\e[27m%g' \
+			-e 's%<h>%\\e[8m%g' -e 's%</h>%\\e[28m%g' \
+			-e 's%<s>%\\e[9m%g' -e 's%</s>%\\e[29m%g' \
+		)
+	fi
 	echo "$str"
 }
 
