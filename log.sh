@@ -128,8 +128,19 @@ __blog_replace_tab_by_space() {
 __blog_text_style() {
 	local str="$1"
 	# note: for now, i just know this code work on Linux
-	# does not work on MacOS
-	if [[ "$(uname -a)" == *"Linux"* ]]; then
+	# does not work on MacOS, just remove formating tag
+	if [[ "$(uname -a)" == *"Darwin"* ]]; then
+		str=$( echo $str | sed \
+			-e 's%<b>%%g' -e 's%</b>%%g' \
+			-e 's%<d>%%g' -e 's%</d>%%g' \
+			-e 's%<i>%%g' -e 's%</i>%%g' \
+			-e 's%<u>%%g' -e 's%</u>%%g' \
+			-e 's%<blink>%%g' -e 's%</blink>%%g' \
+			-e 's%<r>%%g' -e 's%</r>%%g' \
+			-e 's%<h>%%g' -e 's%</h>%%g' \
+			-e 's%<s>%%g' -e 's%</s>%%g' \
+		)
+	else
 		str=$( echo $str | sed \
 			-e 's%<b>%\\e[1m%g' -e 's%</b>%\\e[22m%g' \
 			-e 's%<d>%\\e[2m%g' -e 's%</d>%\\e[22m%g' \
@@ -331,6 +342,12 @@ log_header() {
 
 	# replace tab by space
 	str=` __blog_replace_tab_by_space "${str}" `
+	# replace some 'html' text style with shell color/style code
+	str=$(__blog_text_style "$str")
+	prefix=$(__blog_text_style "$prefix")
+	suffix=$(__blog_text_style "$suffix")
+
+
 	# make header bold as default -> line_width must be change too (+11 chars)
 	if [[ "$bold_header" == "yes" ]]; then
 		str="\e[1m$str\e[22m"
