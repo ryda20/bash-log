@@ -3,7 +3,7 @@ bashlog is a small script to make to output message with color support
 Download to your current project and use
 
 ```sh
-wget -O log.sh https://raw.githubusercontent.com/ryda20/bashlog/master/log.sh
+wget -O log.sh https://raw.githubusercontent.com/ddnm102bash/bashlog/master/log.sh
 ```
 
 Or Using directly:
