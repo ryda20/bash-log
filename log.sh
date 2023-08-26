@@ -1,5 +1,7 @@
 #!/bin/bash
 
+echo "term: $TERM"
+
 ## Variables ##
 __CS=$'\001' # color start code
 __CE=$'\002' # color end code
